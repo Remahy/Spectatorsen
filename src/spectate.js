@@ -223,6 +223,20 @@ class CurrentGame {
         console.log("Autofocus.");
       }
 
+      if (this.isDead === null) {
+        await changeRender(targetEveryone);
+        console.log("START autofocus.");
+
+        setTimeout(async () => {
+          console.log("START focusing on player.");
+          await changeRender(targetPlayer);
+          this.keepFocusTimer = this.focusPlayerTimeout();
+        }, 5000);
+
+        this.isDead = isDead;
+        return;
+      }
+
       this.isDead = isDead;
 
       if (this.activeGame) {
