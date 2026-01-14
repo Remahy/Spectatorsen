@@ -12,10 +12,11 @@ import { TwitchAuth } from "./token.js";
 import pkg from "../pkgObject.cjs";
 const { name: pgkName, version, repository } = pkg;
 
-const spectateInterval = () => {
+let spectateInterval = null;
+const startSpectateInterval = () => {
   clearInterval(spectateInterval);
 
-  return setInterval(() => {
+  spectateInterval = setInterval(() => {
     game.update();
   }, 15_000);
 };
@@ -64,7 +65,7 @@ let chat;
 
     await spectatePlayer(GAME_NAME, TAG_LINE, region);
 
-    spectateInterval();
+    startSpectateInterval();
 
     return;
   }
@@ -105,7 +106,7 @@ let chat;
 
       const player = await spectatePlayer(gameName, tagLine, matchesRegion);
 
-      spectateInterval();
+      startSpectateInterval();
 
       return chat.reply(
         msg.channelName,
