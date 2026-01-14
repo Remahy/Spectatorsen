@@ -266,14 +266,13 @@ class CurrentGame {
         return;
       }
 
-      // Same game as before then do nothing.
+      // Same game as before, then do nothing.
       if (game.gameId === this.lastGameId) {
         return;
       }
 
       this.reset();
 
-      // New game detected
       this.lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
 
@@ -281,7 +280,7 @@ class CurrentGame {
         launchSpectator(game);
 
         this.autoDirector();
-      }, 10_000);
+      }, 30_000);
     } catch (err) {
       console.error("Watcher error:", err);
       console.error(err);
