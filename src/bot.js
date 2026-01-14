@@ -28,10 +28,14 @@ const {
   TWITCH_ENABLE,
   TWITCH_USERNAME,
 
+  /*
   TWITCH_CLIENT_ID,
   TWITCH_CLIENT_SECRET,
   TWITCH_ACCESS_TOKEN,
   TWITCH_REFRESH_TOKEN,
+  */
+
+  TWITCH_PERMA_ACCESS_TOKEN,
 } = process.env;
 
 const spectatePlayer = async (gameName, tagLine, region) => {
@@ -65,6 +69,7 @@ let chat;
     return;
   }
 
+  /*
   const api = new TwitchAuth({
     clientSecret: TWITCH_CLIENT_SECRET,
     clientToken: TWITCH_CLIENT_ID,
@@ -73,6 +78,7 @@ let chat;
       "user-agent": `${pgkName}${version} (${repository.url})`,
     },
   });
+  */
 
   /**
    * @param {ChatClient} chat
@@ -133,6 +139,7 @@ let chat;
       chat.close();
     }
 
+    /*
     let token = TWITCH_ACCESS_TOKEN;
     const validToken = await api.validateToken(TWITCH_ACCESS_TOKEN);
 
@@ -140,9 +147,10 @@ let chat;
       const res = await api.refreshToken(TWITCH_REFRESH_TOKEN);
       token = res.access_token;
     }
+    */
 
     chat = new ChatClient({
-      password: `oauth:${token}`,
+      password: `oauth:${TWITCH_PERMA_ACCESS_TOKEN}`,
       rateLimits: "default",
       username: TWITCH_USERNAME,
       connection: {
