@@ -254,8 +254,10 @@ class CurrentGame {
 
         if (gameData?.gameTime && this.lastGameTime === gameData?.gameTime) {
           this.reset();
+          console.log("Resetting.");
         } else {
           this.lastGameTime = gameData?.gameTime || -1;
+          console.log("Not in-game.");
         }
 
         return;
