@@ -4,13 +4,13 @@ import {
   PrivmsgMessageRateLimiter,
   SlowModeRateLimiter,
 } from "@mastondzn/dank-twitch-irc";
+
 import { regionKeys, REGIONS } from "./regions.js";
-
 import game, { Player } from "./spectate.js";
-import { TwitchAuth } from "./token.js";
+// import { TwitchAuth } from "./token.js";
+// import pkg from "../pkgObject.cjs";
 
-import pkg from "../pkgObject.cjs";
-const { name: pgkName, version, repository } = pkg;
+// const { name: pgkName, version, repository } = pkg;
 
 let spectateInterval = null;
 const startSpectateInterval = () => {

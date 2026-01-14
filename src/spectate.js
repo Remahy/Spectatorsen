@@ -1,6 +1,8 @@
 import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
+import { refreshBrowserSourceCache } from "./obs.js";
+
 const agent = new Agent({
   connect: {
     rejectUnauthorized: false,
@@ -254,6 +256,7 @@ class CurrentGame {
 
         if (gameData?.gameTime && this.lastGameTime === gameData?.gameTime) {
           this.reset();
+          refreshBrowserSourceCache();
           console.log("Resetting.");
         } else {
           this.lastGameTime = gameData?.gameTime || -1;

@@ -9,13 +9,14 @@
   },
   "author": "",
   "license": "MIT",
-	"repository": {
-		"url": "https://github.com/Remahy/Spectatorsen"
-	},
+  "repository": {
+    "url": "https://github.com/Remahy/Spectatorsen"
+  },
   "description": "",
   "dependencies": {
     "@mastondzn/dank-twitch-irc": "^7.2.1",
     "dotenv": "^17.2.3",
+    "obs-websocket-js": "^5.0.7",
     "undici": "^7.18.2"
   }
 }
