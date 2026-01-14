@@ -4,6 +4,8 @@ import { config } from "dotenv";
 
 config();
 
+let keepFocusTimer = null;
+
 const agent = new Agent({
   connect: {
     rejectUnauthorized: false,
@@ -69,7 +71,7 @@ async function getCurrentGameData() {
 }
 
 function getPlayerData(data = {}) {
-  const { allPlayers } = data || {};
+  const { allPlayers = [] } = data || {};
 
   const player = allPlayers.find(
     (player) => player.riotIdGameName.toLowerCase() === GAME_NAME.toLowerCase()
@@ -104,16 +106,17 @@ function launchSpectator(game) {
   exec(`cmd /c start "" "${uri}"`);
 }
 
-function shutdownSpectator(keepFocusTimer) {
+function shutdownSpectator() {
   try {
     clearTimeout(keepFocusTimer);
+		keepFocusTimer = null;
     execSync(`taskkill /IM "League of Legends.exe" /F`);
   } catch (error) {
     console.log("Found nothing to shutdown.");
   }
 }
 
-async function focusPlayer(keepFocusTimer) {
+async function focusPlayer() {
   const uiSettings = {
     interfaceAll: true,
     interfaceAnnounce: true,
@@ -196,7 +199,6 @@ async function focusPlayer(keepFocusTimer) {
 function init(intervalMs = 30_000) {
   let lastGameId = null;
   let isChecking = false;
-  let keepFocusTimer = null;
   let lastGameTime = -1;
 
   setInterval(async () => {
@@ -219,7 +221,7 @@ function init(intervalMs = 30_000) {
         const { gameData } = await getCurrentGameData();
 
         if (gameData?.gameTime && lastGameTime === gameData?.gameTime) {
-          shutdownSpectator(keepFocusTimer);
+          shutdownSpectator();
         } else {
           lastGameTime = gameData?.gameTime || -1;
         }
@@ -236,13 +238,13 @@ function init(intervalMs = 30_000) {
       lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
 
-      shutdownSpectator(keepFocusTimer);
+      shutdownSpectator();
 
       setTimeout(async () => {
         launchSpectator(game);
 
         try {
-          await focusPlayer(keepFocusTimer);
+          await focusPlayer();
         } catch (err) {
           console.log("Tried to focus on player", err);
         }
