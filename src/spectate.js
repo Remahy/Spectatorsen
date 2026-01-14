@@ -203,12 +203,14 @@ class CurrentGame {
     };
 
     return setTimeout(async () => {
+      const gameData = await getCurrentGameData();
       const { isDead = false } = parsePlayerData(
-        await getCurrentGameData(),
+        gameData,
         this.currentPlayer.gameName
       );
 
-      if (isDead === this.isDead) {
+      if (isDead === this.isDead && this.activeGame) {
+        this.keepFocusTimer = this.focusPlayerTimeout();
         return;
       }
 
