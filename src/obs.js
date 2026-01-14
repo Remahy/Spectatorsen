@@ -1,8 +1,27 @@
+import fs from "fs";
 import { OBSWebSocket } from "obs-websocket-js";
 
-const { OBS_IP, OBS_PORT, OBS_PASSWORD, OBS_BROWSER_SOURCE } = process.env;
+const {
+  OBS_IP,
+  OBS_PORT,
+  OBS_PASSWORD,
+  OBS_BROWSER_SOURCE,
+  OBS_AUDIO_SOURCE,
+  OBS_AUDIO_DIRECTORY,
+} = process.env;
 
 const obs = new OBSWebSocket();
+
+const audioFiles = () => {
+  if (!OBS_AUDIO_SOURCE || !OBS_AUDIO_DIRECTORY) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(OBS_AUDIO_DIRECTORY, { withFileTypes: true })
+    .filter((item) => !item.isDirectory())
+    .map((item) => `${OBS_AUDIO_DIRECTORY}\\${item.name}`);
+};
 
 export const refreshBrowserSourceCache = async () => {
   if (!OBS_IP) {
@@ -20,9 +39,47 @@ export const refreshBrowserSourceCache = async () => {
   }
 };
 
+/**
+ * @param {string} [absolutePath]
+ */
+export const playAudioFile = async (absolutePath) => {
+  try {
+    let file = absolutePath;
+
+    if (!file) {
+      const files = audioFiles();
+
+      file = files[Math.floor(Math.random() * files.length)];
+    }
+
+    await obs.call("SetInputSettings", {
+      inputName: OBS_AUDIO_SOURCE,
+      inputSettings: {
+        playlist: [
+          {
+            hidden: false,
+            selected: false,
+            value: file,
+          },
+        ],
+      },
+    });
+
+    await obs.call("TriggerMediaInputAction", {
+      inputName: OBS_AUDIO_SOURCE,
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+    });
+  } catch (err) {
+    console.error("Failed to play audio file in OBS", err);
+  }
+};
+
 (async () => {
   if (OBS_IP) {
-    obs.on("ConnectionOpened", () => console.log("OBS READY"));
+    obs.on("ConnectionOpened", () => {
+      console.log("OBS READY");
+    });
+
     await obs.connect(`ws://${OBS_IP}:${OBS_PORT}`, OBS_PASSWORD);
 
     refreshBrowserSourceCache();

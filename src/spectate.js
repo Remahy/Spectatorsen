@@ -1,7 +1,7 @@
 import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
-import { refreshBrowserSourceCache } from "./obs.js";
+import { refreshBrowserSourceCache, playAudioFile } from "./obs.js";
 
 const agent = new Agent({
   connect: {
@@ -100,7 +100,7 @@ function renderDefaultUI() {
     interfaceFrames: true,
     interfaceKillCallouts: true,
     interfaceMinimap: true,
-    interfaceNeutralTimers: false,
+    interfaceNeutralTimers: true,
     interfaceQuests: true,
     interfaceReplay: false,
     interfaceScore: true,
@@ -159,6 +159,8 @@ class CurrentGame {
   isUpdating = false;
   keepFocusTimer = null;
   lastGameTime = -1;
+  isDead = null;
+  activeGame = false;
 
   /** @type {Player} */
   currentPlayer = new Player();
@@ -171,6 +173,8 @@ class CurrentGame {
     this.lastGameId = null;
     this.keepFocusTimer = null;
     this.lastGameTime = -1;
+    this.isDead = null;
+    this.activeGame = false;
   }
 
   /**
@@ -199,21 +203,30 @@ class CurrentGame {
     };
 
     return setTimeout(async () => {
-      const { isDead = true } = parsePlayerData(
+      const { isDead = false } = parsePlayerData(
         await getCurrentGameData(),
         this.currentPlayer.gameName
       );
+
+      if (isDead === this.isDead) {
+        return;
+      }
 
       if (!isDead) {
         await changeRender(targetPlayer);
         console.log("Focusing on player.");
       } else {
+        playAudioFile();
         await changeRender(targetEveryone);
         console.log("Autofocus.");
       }
 
-      this.keepFocusTimer = this.focusPlayerTimeout();
-    }, 10_000);
+      this.isDead = isDead;
+
+      if (this.activeGame) {
+        this.keepFocusTimer = this.focusPlayerTimeout();
+      }
+    }, 500);
   }
 
   autoDirector() {
@@ -221,7 +234,9 @@ class CurrentGame {
       return setTimeout(async () => {
         const isInReplay = await checkIsInReplay();
         if (!isInReplay) {
-          checkIsLive();
+          if (this.activeGame) {
+            checkIsLive();
+          }
           return;
         }
 
@@ -278,6 +293,7 @@ class CurrentGame {
 
       setTimeout(async () => {
         launchSpectator(game);
+        this.activeGame = true;
 
         this.autoDirector();
       }, 30_000);
