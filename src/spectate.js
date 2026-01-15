@@ -54,6 +54,7 @@ async function getCurrentGameData() {
       "https://127.0.0.1:2999/liveclientdata/allgamedata",
       {
         dispatcher: agent,
+        signal: AbortSignal.timeout(5000),
       }
     );
 
@@ -62,7 +63,11 @@ async function getCurrentGameData() {
     }
 
     return res.json();
-  } catch {
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw err;
+    }
+
     return {};
   }
 }
@@ -203,7 +208,15 @@ class CurrentGame {
     };
 
     return setTimeout(async () => {
-      const gameData = await getCurrentGameData();
+      let gameData;
+
+      try {
+        gameData = await getCurrentGameData();
+      } catch {
+        this.reset();
+        return;
+      }
+
       const { isDead = false } = parsePlayerData(
         gameData,
         this.currentPlayer.gameName
@@ -282,8 +295,14 @@ class CurrentGame {
       // Player not in-game.
       if (!game) {
         this.lastGameId = null;
+        let gameData;
 
-        const { gameData } = await getCurrentGameData();
+        try {
+          const data = await getCurrentGameData();
+          gameData = data.gameData;
+        } catch {
+          // noop
+        }
 
         if (gameData?.gameTime && this.lastGameTime === gameData?.gameTime) {
           this.reset();
