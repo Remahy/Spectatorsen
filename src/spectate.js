@@ -64,7 +64,6 @@ async function getCurrentGameData() {
 
     return res.json();
   } catch (err) {
-    console.log(err);
     if (err.name === "AbortError") {
       throw err;
     }
@@ -333,8 +332,9 @@ class CurrentGame {
       this.lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
 
+      const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
-        game.gameLength > 180 ? 0 : (180 - game.gameLength) * 1000;
+        msSinceStart > 180_000 ? 0 : 180_000 - msSinceStart;
 
       console.log(
         "Waiting",
