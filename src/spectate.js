@@ -64,6 +64,7 @@ async function getCurrentGameData() {
 
     return res.json();
   } catch (err) {
+    console.log(err);
     if (err.name === "AbortError") {
       throw err;
     }
@@ -131,6 +132,12 @@ function launchSpectator(game) {
 function shutdownSpectator() {
   try {
     execSync(`taskkill /IM "League of Legends.exe" /F`);
+  } catch {
+    // noop
+  }
+
+  try {
+    execSync(`taskkill /IM "OpenWith.exe" /F`);
   } catch {
     // noop
   }
@@ -326,12 +333,21 @@ class CurrentGame {
       this.lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
 
+      const spectatorTimeout =
+        game.gameLength > 180 ? 0 : (180 - game.gameLength) * 1000;
+
+      console.log(
+        "Waiting",
+        spectatorTimeout > 0 ? spectatorTimeout / 1000 : 0,
+        "seconds before launching client."
+      );
+
       setTimeout(async () => {
         launchSpectator(game);
         this.activeGame = true;
 
         this.autoDirector();
-      }, 30_000);
+      }, spectatorTimeout);
     } catch (err) {
       console.error("Watcher error:", err);
       console.error(err);
