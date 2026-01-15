@@ -38,7 +38,7 @@ async function getCurrentGame(puuid, spectateRegion) {
   });
 
   if (res.status === 404) {
-    return null; // not in game
+    return null;
   }
 
   if (!res.ok) {
@@ -130,13 +130,13 @@ function launchSpectator(game) {
 
 function shutdownSpectator() {
   try {
-    execSync(`taskkill /IM "League of Legends.exe" /F`);
+    execSync(`taskkill /IM "League of Legends.exe" /F`, { stdio: 'ignore' });
   } catch {
     // noop
   }
 
   try {
-    execSync(`taskkill /IM "OpenWith.exe" /F`);
+    execSync(`taskkill /IM "OpenWith.exe" /F`, { stdio: 'ignore' });
   } catch {
     // noop
   }
@@ -292,12 +292,17 @@ class CurrentGame {
 
     this.isUpdating = true;
 
+    let game;
     try {
-      const game = await getCurrentGame(
+      game = await getCurrentGame(
         this.currentPlayer.puuid,
         this.currentPlayer.region.platform
       );
+    } catch (err) {
+      console.error("Error retrieving spectator API", err);
+    }
 
+    try {
       // Player not in-game.
       if (!game) {
         this.lastGameId = null;
@@ -313,7 +318,7 @@ class CurrentGame {
         if (gameData?.gameTime && this.lastGameTime === gameData?.gameTime) {
           this.reset();
           refreshBrowserSourceCache();
-          console.log("Resetting.");
+          console.log("Exiting completed game.");
         } else {
           this.lastGameTime = gameData?.gameTime || -1;
           console.log("Not in-game.");
