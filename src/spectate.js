@@ -64,7 +64,7 @@ async function getCurrentGameData() {
 
     return res.json();
   } catch (err) {
-    if (err.name === "AbortError") {
+    if (err.name === "TimeoutError") {
       throw err;
     }
 
@@ -334,7 +334,7 @@ class CurrentGame {
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
-        msSinceStart > 180_000 ? 0 : 180_000 - msSinceStart;
+        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart;
 
       console.log(
         "Waiting",
