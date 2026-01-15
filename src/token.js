@@ -37,6 +37,9 @@ export class TwitchAuth {
     this.redirectURI = config.redirectURI;
     this.scope = config.scope.join("%20");
     this.headers = config.headers;
+    this.logger = {
+      error: console.error,
+    };
   }
 
   /**
@@ -61,8 +64,8 @@ export class TwitchAuth {
       );
 
       return res.json();
-    } catch (error) {
-      this.logger.error({ err: error }, "Twitch.requestAppToken()");
+    } catch (err) {
+      this.logger.error({ err }, "Twitch.requestAppToken()");
       return null;
     }
   }
@@ -91,8 +94,8 @@ export class TwitchAuth {
       );
 
       return res.json();
-    } catch (error) {
-      this.logger.error({ err: error }, "Twitch.refreshToken()");
+    } catch (err) {
+      this.logger.error({ err }, "Twitch.refreshToken()");
       return null;
     }
   }
@@ -112,8 +115,8 @@ export class TwitchAuth {
       });
 
       return res.json();
-    } catch (error) {
-      this.logger.error({ err: error }, "Twitch.validateToken()");
+    } catch (err) {
+      this.logger.error({ err }, "Twitch.validateToken()");
       return null;
     }
   }

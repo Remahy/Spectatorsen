@@ -165,9 +165,9 @@ let chat;
 
     chat.on("ready", () => console.log("Successfully connected to chat"));
 
-    chat.on("close", (error) => {
-      if (error != null) {
-        console.error("Client closed due to error", error);
+    chat.on("close", (err) => {
+      if (err != null) {
+        console.error("Client closed due to error", err);
       }
     });
 

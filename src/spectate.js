@@ -24,8 +24,8 @@ async function getPUUID(gameName, tagLine, region = REGION) {
     }
 
     return res.json();
-  } catch (error) {
-    console.error("Error retrieving PUUID", error);
+  } catch (err) {
+    console.error("Error retrieving PUUID", err);
     throw new Error("Account not found");
   }
 }
@@ -131,8 +131,8 @@ function launchSpectator(game) {
 function shutdownSpectator() {
   try {
     execSync(`taskkill /IM "League of Legends.exe" /F`);
-  } catch (error) {
-    console.log("Found nothing to shutdown.");
+  } catch {
+    // noop
   }
 }
 
