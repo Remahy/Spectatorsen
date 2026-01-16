@@ -97,7 +97,7 @@ export const restartBlueBottle = () => {
   const exeName = path.basename(BLUEBOTTLE_EXE_PATH);
 
   try {
-    execSync(`taskkill /IM "${exeName}" /F`, { stdio: "ignore" });
+    execSync(`taskkill /IM "${exeName}"`, { stdio: "ignore" });
   } catch {
     // noop
   }
