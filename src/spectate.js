@@ -315,6 +315,7 @@ class CurrentGame {
     this.isUpdating = true;
 
     if (!this.currentPlayer) {
+			this.isUpdating = false;
       console.log("Not spectating anyone.");
       return;
     }
