@@ -151,6 +151,15 @@ let chat;
       spectateCommandParse(chat, msg)(region, player.join(" "));
       return;
     }
+
+    if (command === "reset") {
+      game.reset();
+      return chat.reply(
+        msg.channelName,
+        msg.messageID,
+        `resetting, there may be another delay before game is launched again.`
+      );
+    }
   };
 
   const resetChat = async () => {
