@@ -8,6 +8,7 @@ import {
 import { regionKeys, REGIONS } from "./regions.js";
 import game, { Player } from "./spectate.js";
 import { setNewPlayerBrowserSource } from "./obs.js";
+import { restartBlueBottle } from "./bb.js";
 // import { TwitchAuth } from "./token.js";
 // import pkg from "../pkgObject.cjs";
 
@@ -153,6 +154,7 @@ let chat;
     }
 
     if (command === "reset") {
+			restartBlueBottle();
       game.reset();
       return chat.reply(
         msg.channelName,
