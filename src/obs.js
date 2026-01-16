@@ -50,12 +50,12 @@ export const setNewPlayerBrowserSource = async (player) => {
 
   if (!OBS_BROWSER_SOURCE_URL) {
     console.log("OBS_BROWSER_SOURCE_URL not set.");
-		return;
+    return;
   }
 
   const url = OBS_BROWSER_SOURCE_URL.replace(
     "%gameName%",
-    player.gameName
+    player.gameName,
   ).replace("%tagLine%", player.tagLine);
 
   try {

@@ -60,7 +60,7 @@ export class TwitchAuth {
         {
           method: "POST",
           headers: { ...this.headers },
-        }
+        },
       );
 
       return res.json();
@@ -90,7 +90,7 @@ export class TwitchAuth {
         {
           method: "POST",
           headers: { ...this.headers },
-        }
+        },
       );
 
       return res.json();

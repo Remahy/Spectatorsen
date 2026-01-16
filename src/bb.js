@@ -54,8 +54,8 @@ export const resetTeams = async () => {
       teamIds.map((teamId) =>
         fetch(`${BLUEBOTTLE_ENDPOINT}/api/team/${teamId}`, {
           method: "DELETE",
-        })
-      )
+        }),
+      ),
     );
   } catch {
     // noop

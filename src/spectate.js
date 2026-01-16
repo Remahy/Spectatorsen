@@ -56,7 +56,7 @@ async function getCurrentGameData() {
       {
         dispatcher: agent,
         signal: AbortSignal.timeout(5000),
-      }
+      },
     );
 
     if (!res.ok) {
@@ -77,7 +77,7 @@ function parsePlayerData(data = {}, gameName) {
   const { allPlayers = [] } = data || {};
 
   const player = allPlayers.find(
-    (player) => player.riotIdGameName.toLowerCase() === gameName.toLowerCase()
+    (player) => player.riotIdGameName.toLowerCase() === gameName.toLowerCase(),
   );
 
   return player || {};
@@ -123,7 +123,7 @@ function launchSpectator(game) {
   const { gameId, platformId } = game;
 
   const uri = `opgg://spectate?host=spectator.${platformId.toLowerCase()}.lol.pvp.net%3A8080&key=${encodeURIComponent(
-    encryptionKey
+    encryptionKey,
   )}&gameId=${gameId}&platformId=${platformId.toUpperCase()}&game=LOL`;
 
   exec(`cmd /c start "" "${uri}"`);
@@ -169,7 +169,7 @@ const checkIsInReplay = async () => {
 class CurrentGame {
   lastGameId = null;
   isUpdating = false;
-	startAutoDirectorTimer = null;
+  startAutoDirectorTimer = null;
   keepFocusTimer = null;
   lastGameTime = -1;
   isDead = null;
@@ -191,7 +191,7 @@ class CurrentGame {
     shutdownSpectator();
     setBBDefaults();
     this.lastGameId = null;
-		this.startAutoDirectorTimer = null;
+    this.startAutoDirectorTimer = null;
     this.keepFocusTimer = null;
     this.lastGameTime = -1;
     this.isDead = null;
@@ -245,7 +245,7 @@ class CurrentGame {
 
       const { isDead = false } = parsePlayerData(
         gameData,
-        this.currentPlayer.gameName
+        this.currentPlayer.gameName,
       );
 
       if (isDead === this.isDead && this.activeGame) {
@@ -321,7 +321,7 @@ class CurrentGame {
     try {
       game = await getCurrentGame(
         this.currentPlayer.puuid,
-        this.currentPlayer.region.platform
+        this.currentPlayer.region.platform,
       );
     } catch (err) {
       console.error("Error retrieving spectator API", err);
@@ -369,17 +369,17 @@ class CurrentGame {
       console.log(
         "Waiting",
         spectatorTimeout > 0 ? spectatorTimeout / 1000 : 0,
-        "seconds before launching client."
+        "seconds before launching client.",
       );
 
       this.chat(
         `Game found. ${
           spectatorTimeout > 0
             ? ` Waiting ${Math.ceil(
-                spectatorTimeout / 1000
+                spectatorTimeout / 1000,
               )} seconds before launching client.`
             : ""
-        }`
+        }`,
       );
 
       refreshBrowserSourceCache();

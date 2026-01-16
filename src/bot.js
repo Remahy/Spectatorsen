@@ -53,7 +53,7 @@ const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
     region,
     playerData.gameName,
     playerData.tagLine,
-    playerData.puuid
+    playerData.puuid,
   );
 
   game.setPlayer(player);
@@ -112,7 +112,7 @@ let chat;
         return chat.reply(
           msg.channelName,
           msg.messageID,
-          `🦆 possible region values: ${regionKeys.join(" ")}`
+          `🦆 possible region values: ${regionKeys.join(" ")}`,
         );
       }
 
@@ -122,7 +122,7 @@ let chat;
         gameName,
         tagLine,
         matchesRegion,
-        chat
+        chat,
       );
 
       startSpectateInterval();
@@ -130,7 +130,7 @@ let chat;
       return chat.reply(
         msg.channelName,
         msg.messageID,
-        `🦆 now spectating "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`
+        `🦆 now spectating "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
       );
     };
 
@@ -158,7 +158,7 @@ let chat;
       return chat.reply(
         msg.channelName,
         msg.messageID,
-        "🦆 restarting, there may be another delay before game is launched again."
+        "🦆 restarting, there may be another delay before game is launched again.",
       );
     }
 
@@ -169,7 +169,7 @@ let chat;
       return chat.reply(
         msg.channelName,
         msg.messageID,
-        "🦆 resetting, removing currently spectated player."
+        "🦆 resetting, removing currently spectated player.",
       );
     }
   };
