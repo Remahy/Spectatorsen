@@ -44,8 +44,9 @@ const {
  * @param {string} gameName
  * @param {string} tagLine
  * @param {string} region
+ * @param {ChatClient} chat
  */
-const spectatePlayer = async (gameName, tagLine, region) => {
+const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
   const playerData = await Player.find(`${gameName}#${tagLine}`);
 
   const player = new Player(
@@ -58,6 +59,11 @@ const spectatePlayer = async (gameName, tagLine, region) => {
   game.setPlayer(player);
 
   setNewPlayerBrowserSource(player);
+
+  if (chat) {
+    const sendMessageFn = (msg) => chat.say(TWITCH_USERNAME, msg);
+    game.setChat(sendMessageFn);
+  }
 
   return player;
 };
@@ -112,7 +118,12 @@ let chat;
 
       const [gameName, tagLine] = value.split("#");
 
-      const player = await spectatePlayer(gameName, tagLine, matchesRegion);
+      const player = await spectatePlayer(
+        gameName,
+        tagLine,
+        matchesRegion,
+        chat
+      );
 
       startSpectateInterval();
 

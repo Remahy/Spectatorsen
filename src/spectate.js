@@ -173,6 +173,11 @@ class CurrentGame {
   isDead = null;
   activeGame = false;
 
+  /** @type {(msg: string) => void} */
+  chat = () => {
+    /* noop */
+  };
+
   /** @type {Player} */
   currentPlayer = new Player();
 
@@ -186,6 +191,13 @@ class CurrentGame {
     this.lastGameTime = -1;
     this.isDead = null;
     this.activeGame = false;
+  }
+
+  /**
+   * @param {(msg: string) => void} fn
+   */
+  setChat(fn) {
+    this.chat = fn;
   }
 
   /**
@@ -345,6 +357,16 @@ class CurrentGame {
         "Waiting",
         spectatorTimeout > 0 ? spectatorTimeout / 1000 : 0,
         "seconds before launching client."
+      );
+
+      this.chat(
+        `Game found. ${
+          spectatorTimeout > 0
+            ? ` Waiting ${Math.ceil(
+                spectatorTimeout / 1000
+              )} seconds before launching client.`
+            : ""
+        }`
       );
 
       setTimeout(async () => {
