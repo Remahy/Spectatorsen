@@ -2,7 +2,7 @@ import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
 import { refreshBrowserSourceCache, playAudioFile } from "./obs.js";
-import { restartBlueBottle } from "./bb.js";
+import { setBBDefaults } from "./bb.js";
 
 const agent = new Agent({
   connect: {
@@ -187,6 +187,7 @@ class CurrentGame {
   reset() {
     shutdownSpectator();
     clearTimeout(this.keepFocusTimer);
+    setBBDefaults();
     this.lastGameId = null;
     this.keepFocusTimer = null;
     this.lastGameTime = -1;
@@ -208,8 +209,6 @@ class CurrentGame {
     this.reset();
 
     this.currentPlayer = playerSpectate;
-
-    restartBlueBottle();
   }
 
   focusPlayerTimeout() {
@@ -337,7 +336,6 @@ class CurrentGame {
           this.reset();
           refreshBrowserSourceCache();
           console.log("Exiting completed game.");
-          restartBlueBottle();
         } else {
           this.lastGameTime = gameData?.gameTime || -1;
           console.log("Not in-game.");
