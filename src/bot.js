@@ -152,12 +152,23 @@ let chat;
       return;
     }
 
-    if (command === "reset") {
+    if (command === "restart") {
       game.reset();
       return chat.reply(
         msg.channelName,
         msg.messageID,
-        `resetting, there may be another delay before game is launched again.`
+        "🦆 restarting, there may be another delay before game is launched again."
+      );
+    }
+
+    if (command === "reset") {
+      game.reset();
+      game.setPlayer(null);
+
+      return chat.reply(
+        msg.channelName,
+        msg.messageID,
+        "🦆 resetting, removing currently spectated player."
       );
     }
   };

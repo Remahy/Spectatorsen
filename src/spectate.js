@@ -203,7 +203,7 @@ class CurrentGame {
   }
 
   /**
-   * @param {Player} playerSpectate
+   * @param {Player | null} playerSpectate
    */
   setPlayer(playerSpectate) {
     this.reset();
@@ -308,6 +308,11 @@ class CurrentGame {
     }
 
     this.isUpdating = true;
+
+    if (!this.currentPlayer) {
+      console.log("Not spectating anyone.");
+      return;
+    }
 
     let game;
     try {
