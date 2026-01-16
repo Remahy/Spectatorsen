@@ -154,6 +154,7 @@ let chat;
 
     if (command === "restart") {
       game.reset();
+
       return chat.reply(
         msg.channelName,
         msg.messageID,
@@ -162,8 +163,8 @@ let chat;
     }
 
     if (command === "reset") {
-      game.reset();
       game.setPlayer(null);
+      game.reset();
 
       return chat.reply(
         msg.channelName,
