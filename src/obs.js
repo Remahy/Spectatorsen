@@ -6,6 +6,7 @@ const {
   OBS_PORT,
   OBS_PASSWORD,
   OBS_BROWSER_SOURCE,
+  OBS_BROWSER_SOURCE_URL,
   OBS_AUDIO_SOURCE,
   OBS_AUDIO_DIRECTORY,
 } = process.env;
@@ -36,6 +37,37 @@ export const refreshBrowserSourceCache = async () => {
     console.log("Refreshed OBS browser source cache");
   } catch (err) {
     console.error("Failed to refresh OBS browser source cache", err);
+  }
+};
+
+/**
+ * @param {import('./spectate').Player} player
+ */
+export const setNewPlayerBrowserSource = async (player) => {
+  if (!OBS_IP) {
+    return;
+  }
+
+  if (!OBS_BROWSER_SOURCE_URL) {
+    console.log("OBS_BROWSER_SOURCE_URL not set.");
+		return;
+  }
+
+  const url = OBS_BROWSER_SOURCE_URL.replace(
+    "%gameName%",
+    player.gameName
+  ).replace("%tagLine%", player.tagLine);
+
+  try {
+    await obs.call("SetInputSettings", {
+      inputName: OBS_BROWSER_SOURCE,
+      inputSettings: {
+        url: url,
+      },
+    });
+    console.log("Set new player in OBS.");
+  } catch (err) {
+    console.error("Failed to set new player in OBS.", err);
   }
 };
 

@@ -7,6 +7,7 @@ import {
 
 import { regionKeys, REGIONS } from "./regions.js";
 import game, { Player } from "./spectate.js";
+import { setNewPlayerBrowserSource } from "./obs.js";
 // import { TwitchAuth } from "./token.js";
 // import pkg from "../pkgObject.cjs";
 
@@ -39,6 +40,11 @@ const {
   TWITCH_PERMA_ACCESS_TOKEN,
 } = process.env;
 
+/**
+ * @param {string} gameName
+ * @param {string} tagLine
+ * @param {string} region
+ */
 const spectatePlayer = async (gameName, tagLine, region) => {
   const playerData = await Player.find(`${gameName}#${tagLine}`);
 
@@ -50,6 +56,8 @@ const spectatePlayer = async (gameName, tagLine, region) => {
   );
 
   game.setPlayer(player);
+
+  setNewPlayerBrowserSource(player);
 
   return player;
 };
