@@ -169,6 +169,7 @@ const checkIsInReplay = async () => {
 class CurrentGame {
   lastGameId = null;
   isUpdating = false;
+	startAutoDirectorTimer = null;
   keepFocusTimer = null;
   lastGameTime = -1;
   isDead = null;
@@ -185,10 +186,12 @@ class CurrentGame {
   constructor() {}
 
   reset() {
-    shutdownSpectator();
+    clearTimeout(this.startAutoDirectorTimer);
     clearTimeout(this.keepFocusTimer);
+    shutdownSpectator();
     setBBDefaults();
     this.lastGameId = null;
+		this.startAutoDirectorTimer = null;
     this.keepFocusTimer = null;
     this.lastGameTime = -1;
     this.isDead = null;
@@ -381,7 +384,7 @@ class CurrentGame {
 
       refreshBrowserSourceCache();
 
-      setTimeout(async () => {
+      this.startAutoDirectorTimer = setTimeout(async () => {
         launchSpectator(game);
         this.activeGame = true;
 
