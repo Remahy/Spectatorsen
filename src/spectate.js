@@ -258,8 +258,10 @@ class CurrentGame {
         console.log("Focusing on player.");
       } else {
         playAudioFile();
-        await changeRender(targetEveryone);
-        console.log("Autofocus.");
+        setTimeout(() => {
+          changeRender(targetEveryone);
+          console.log("Autofocus.");
+        }, 2500);
       }
 
       if (this.isDead === null) {
