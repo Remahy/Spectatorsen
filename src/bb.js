@@ -78,7 +78,7 @@ export const resetTeams = async () => {
   ).map(({ value }) => value);
 
   const teamIds = (
-    await Promise.allSettled(teamsRes.map((res) => res.json()))
+    await Promise.allSettled(teamsRes.map((res) => res?.json()))
   ).map(({ value }) => value);
 
   return teamIds;
