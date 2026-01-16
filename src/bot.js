@@ -200,7 +200,10 @@ let chat;
     });
 
     chat.on("PRIVMSG", (msg) => {
-      if (msg.isMod) {
+      if (
+        msg.isMod &&
+        msg.senderUsername.toLowerCase() !== TWITCH_USERNAME.toLowerCase()
+      ) {
         commandParse(chat, msg);
       }
     });

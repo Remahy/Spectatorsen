@@ -130,13 +130,13 @@ function launchSpectator(game) {
 
 function shutdownSpectator() {
   try {
-    execSync(`taskkill /IM "League of Legends.exe" /F`, { stdio: 'ignore' });
+    execSync(`taskkill /IM "League of Legends.exe" /F`, { stdio: "ignore" });
   } catch {
     // noop
   }
 
   try {
-    execSync(`taskkill /IM "OpenWith.exe" /F`, { stdio: 'ignore' });
+    execSync(`taskkill /IM "OpenWith.exe" /F`, { stdio: "ignore" });
   } catch {
     // noop
   }
@@ -226,6 +226,9 @@ class CurrentGame {
     };
 
     return setTimeout(async () => {
+      // Always maintain UI.
+      renderDefaultUI();
+
       let gameData;
 
       try {
