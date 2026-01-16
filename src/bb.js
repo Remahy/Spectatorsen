@@ -19,8 +19,8 @@ export const resetCurrentGame = async () => {
 export const resetTeams = async () => {
   const defaultTeam1 = {
     members: [],
-    name: "Blue",
-    tag: "BLUE",
+    name: "Team",
+    tag: "",
     isActive: true,
     primaryColor: "#FFFFFFFF",
     secondaryColor: "#FFFFFFFF",
@@ -30,8 +30,8 @@ export const resetTeams = async () => {
 
   const defaultTeam2 = {
     members: [],
-    name: "Red",
-    tag: "RED",
+    name: "Team",
+    tag: "",
     isActive: true,
     primaryColor: "#FFFFFFFF",
     secondaryColor: "#FFFFFFFF",
