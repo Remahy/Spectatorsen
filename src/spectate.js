@@ -374,6 +374,8 @@ class CurrentGame {
         }`
       );
 
+      refreshBrowserSourceCache();
+
       setTimeout(async () => {
         launchSpectator(game);
         this.activeGame = true;
