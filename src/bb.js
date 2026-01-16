@@ -11,6 +11,7 @@ export const resetCurrentGame = async () => {
   await Promise.allSettled([
     fetch(`${BLUEBOTTLE_ENDPOINT}/api/match/current`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
     }),
   ]);
 };
@@ -60,18 +61,27 @@ export const resetTeams = async () => {
     // noop
   }
 
-  return (
+  const teamsRes = (
     await Promise.allSettled([
       fetch(`${BLUEBOTTLE_ENDPOINT}/api/team`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+
         body: JSON.stringify(defaultTeam1),
       }),
       fetch(`${BLUEBOTTLE_ENDPOINT}/api/team`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(defaultTeam2),
       }),
     ])
   ).map(({ value }) => value);
+
+  const teamIds = (
+    await Promise.allSettled(teamsRes.map((res) => res.json()))
+  ).map(({ value }) => value);
+
+  return teamIds;
 };
 
 export const setBBDefaults = async () => {
@@ -86,7 +96,7 @@ export const setBBDefaults = async () => {
     isActive: true,
     type: 1,
     ruleSet: 0,
-    onStage: false,
+    onStage: true,
   };
 
   const defaultShowing = {
@@ -123,6 +133,8 @@ export const setBBDefaults = async () => {
 
   await Promise.allSettled([
     fetch(`${BLUEBOTTLE_ENDPOINT}/api/style/set/active/1/${BLUEBOTTLE_STYLE}`, {
+      headers: { "Content-Type": "application/json" },
+
       method: "POST",
     }),
   ]);
@@ -134,6 +146,7 @@ export const setBBDefaults = async () => {
   await Promise.allSettled([
     fetch(`${BLUEBOTTLE_ENDPOINT}/api/match`, {
       method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...defaultMatch, teams }),
     }),
   ]);
@@ -141,6 +154,7 @@ export const setBBDefaults = async () => {
   await Promise.allSettled([
     fetch(`${BLUEBOTTLE_ENDPOINT}/api/ingame/showing`, {
       method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(defaultShowing),
     }),
   ]);
