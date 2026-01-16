@@ -9,7 +9,7 @@ import { regionKeys, REGIONS } from "./regions.js";
 import game, { Player } from "./spectate.js";
 import { setNewPlayerBrowserSource } from "./obs.js";
 // import { TwitchAuth } from "./token.js";
-// import pkg from "../pkgObject.cjs";
+// import pkg from "../packageObject.cjs";
 
 // const { name: pgkName, version, repository } = pkg;
 

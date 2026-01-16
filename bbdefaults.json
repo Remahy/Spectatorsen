@@ -1,0 +1,62 @@
+{
+  "defaultMatch": {
+    "teams": [],
+    "isCurrent": true,
+    "seasonId": 1,
+    "isActive": true,
+    "type": 1,
+    "ruleSet": 0,
+    "onStage": true
+  },
+  "defaultShowing": {
+    "scoreboard": {
+      "show": false,
+      "overlaysToDisable": []
+    },
+    "patch": {
+      "show": false,
+      "overlaysToDisable": []
+    },
+    "tabs": {
+      "show": false,
+      "overlaysToDisable": []
+    },
+    "scoreboardBottom": {
+      "show": true,
+      "overlaysToDisable": []
+    },
+    "baronPitTimer": {
+      "show": true,
+      "overlaysToDisable": []
+    },
+    "dragonPitTimer": {
+      "show": true,
+      "overlaysToDisable": []
+    },
+    "inhibitors": {
+      "show": false,
+      "overlaysToDisable": []
+    },
+    "disabledOverlayIds": []
+  },
+  "defaultTeam1": {
+    "members": [],
+    "name": "Team",
+    "tag": "",
+    "isActive": true,
+    "primaryColor": "#FFFFFFFF",
+    "secondaryColor": "#FFFFFFFF",
+    "tertiaryColor": "#FFFFFFFF",
+    "backgroundColor": "#FF000000"
+  },
+  "defaultTeam2": {
+    "members": [],
+    "name": "Team",
+    "tag": "",
+    "isActive": true,
+    "primaryColor": "#FFFFFFFF",
+    "secondaryColor": "#FFFFFFFF",
+    "tertiaryColor": "#FFFFFFFF",
+    "backgroundColor": "#FF000000"
+  }
+}

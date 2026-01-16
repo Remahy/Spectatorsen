@@ -1,4 +1,8 @@
 import { fetch } from "undici";
+import bbDefaultsObject from "../bbdefaultsObject.cjs";
+
+const { defaultMatch, defaultShowing, defaultTeam1, defaultTeam2 } =
+  bbDefaultsObject;
 
 const { BLUEBOTTLE_ENABLE, BLUEBOTTLE_ENDPOINT, BLUEBOTTLE_STYLE } =
   process.env;
@@ -17,28 +21,6 @@ export const resetCurrentGame = async () => {
 };
 
 export const resetTeams = async () => {
-  const defaultTeam1 = {
-    members: [],
-    name: "Team",
-    tag: "",
-    isActive: true,
-    primaryColor: "#FFFFFFFF",
-    secondaryColor: "#FFFFFFFF",
-    tertiaryColor: "#FFFFFFFF",
-    backgroundColor: "#FF000000",
-  };
-
-  const defaultTeam2 = {
-    members: [],
-    name: "Team",
-    tag: "",
-    isActive: true,
-    primaryColor: "#FFFFFFFF",
-    secondaryColor: "#FFFFFFFF",
-    tertiaryColor: "#FFFFFFFF",
-    backgroundColor: "#FF000000",
-  };
-
   try {
     const res = await fetch(`${BLUEBOTTLE_ENDPOINT}/api/team`);
 
@@ -89,47 +71,6 @@ export const setBBDefaults = async () => {
     return;
   }
 
-  const defaultMatch = {
-    teams: [],
-    isCurrent: true,
-    seasonId: 1,
-    isActive: true,
-    type: 1,
-    ruleSet: 0,
-    onStage: true,
-  };
-
-  const defaultShowing = {
-    scoreboard: {
-      show: false,
-      overlaysToDisable: [],
-    },
-    patch: {
-      show: false,
-      overlaysToDisable: [],
-    },
-    tabs: {
-      show: false,
-      overlaysToDisable: [],
-    },
-    scoreboardBottom: {
-      show: true, // !
-      overlaysToDisable: [],
-    },
-    baronPitTimer: {
-      show: true, // !
-      overlaysToDisable: [],
-    },
-    dragonPitTimer: {
-      show: true, // !
-      overlaysToDisable: [],
-    },
-    inhibitors: {
-      show: false,
-      overlaysToDisable: [],
-    },
-    disabledOverlayIds: [],
-  };
 
   await Promise.allSettled([
     fetch(`${BLUEBOTTLE_ENDPOINT}/api/style/set/active/1/${BLUEBOTTLE_STYLE}`, {
