@@ -343,12 +343,17 @@ class CurrentGame {
           // noop
         }
 
-        if (gameData?.gameTime && this.lastGameTime === gameData?.gameTime) {
+        if (
+          gameData?.gameTime &&
+          this.lastGameTime === Number(gameData.gameTime).toFixed(0)
+        ) {
           this.reset();
           refreshBrowserSourceCache();
           console.log("Exiting completed game.");
         } else {
-          this.lastGameTime = gameData?.gameTime || -1;
+          this.lastGameTime = gameData?.gameTime
+            ? Number(gameData?.gameTime).toFixed(0)
+            : -1;
           console.log("Not in-game.");
         }
 
@@ -361,17 +366,21 @@ class CurrentGame {
       }
 
       if (this.activeGame) {
-        let gameData;
-
         try {
           const { gameData } = await getCurrentGameData();
 
-          if (gameData?.gameTime && this.lastGameTime === gameData?.gameTime) {
+          if (
+            gameData?.gameTime &&
+            this.lastGameTime === Number(gameData.gameTime).toFixed(0)
+          ) {
             this.reset();
             refreshBrowserSourceCache();
             console.log("Exiting completed game a tad late.");
           } else {
             console.log("Found new game, but current game is still ongoing.");
+            this.lastGameTime = gameData?.gameTime
+              ? Number(gameData?.gameTime).toFixed(0)
+              : -1;
             return;
           }
         } catch {
