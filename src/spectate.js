@@ -360,7 +360,24 @@ class CurrentGame {
         return;
       }
 
-      this.reset();
+      if (this.activeGame) {
+        let gameData;
+
+        try {
+          const { gameData } = await getCurrentGameData();
+
+          if (gameData?.gameTime && this.lastGameTime === gameData?.gameTime) {
+            this.reset();
+            refreshBrowserSourceCache();
+            console.log("Exiting completed game a tad late.");
+          } else {
+            console.log("Found new game, but current game is still ongoing.");
+            return;
+          }
+        } catch {
+          // noop
+        }
+      }
 
       this.lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
