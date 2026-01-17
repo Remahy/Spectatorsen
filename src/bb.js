@@ -1,11 +1,17 @@
+import { exec, execSync } from "child_process";
+import path from "path";
 import { fetch } from "undici";
 import bbDefaultsObject from "../bbdefaultsObject.cjs";
 
 const { defaultMatch, defaultShowing, defaultTeam1, defaultTeam2 } =
   bbDefaultsObject;
 
-const { BLUEBOTTLE_ENABLE, BLUEBOTTLE_ENDPOINT, BLUEBOTTLE_STYLE } =
-  process.env;
+const {
+  BLUEBOTTLE_ENABLE,
+  BLUEBOTTLE_EXECUTABLE,
+  BLUEBOTTLE_ENDPOINT,
+  BLUEBOTTLE_STYLE,
+} = process.env;
 
 export const resetCurrentGame = async () => {
   if (!BLUEBOTTLE_ENABLE) {
@@ -20,7 +26,45 @@ export const resetCurrentGame = async () => {
   ]);
 };
 
-export const resetTeams = async () => {
+export const waitForBB = async () => {
+  if (!BLUEBOTTLE_ENABLE) {
+    return;
+  }
+
+  while (true) {
+    try {
+      const res = await fetch(`${BLUEBOTTLE_ENDPOINT}/api/status/version`);
+
+      if (res.status === 200) {
+        return;
+      }
+    } catch {
+      // noop
+    }
+
+    await new Promise((r) => setTimeout(r, 500));
+  }
+};
+
+const restartBB = async () => {
+  try {
+    const exeName = path.basename(BLUEBOTTLE_EXECUTABLE);
+
+    execSync(`taskkill /IM "${exeName}" /F`, { stdio: "ignore" });
+  } catch {
+    // noop
+  }
+
+  const directory = path.dirname(BLUEBOTTLE_EXECUTABLE);
+
+  setTimeout(() => {
+    exec(`cmd /c start "" /D "${directory}" "${BLUEBOTTLE_EXECUTABLE}"`);
+  }, 10_000);
+
+  return waitForBB();
+};
+
+const resetTeams = async () => {
   try {
     const res = await fetch(`${BLUEBOTTLE_ENDPOINT}/api/team`);
 
@@ -48,7 +92,6 @@ export const resetTeams = async () => {
       fetch(`${BLUEBOTTLE_ENDPOINT}/api/team`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-
         body: JSON.stringify(defaultTeam1),
       }),
       fetch(`${BLUEBOTTLE_ENDPOINT}/api/team`, {
@@ -66,11 +109,19 @@ export const resetTeams = async () => {
   return teamIds;
 };
 
+let initializing = false;
 export const setBBDefaults = async () => {
   if (!BLUEBOTTLE_ENABLE) {
     return;
   }
 
+  if (initializing) {
+    return;
+  }
+
+  initializing = true;
+
+  await restartBB();
 
   await Promise.allSettled([
     fetch(`${BLUEBOTTLE_ENDPOINT}/api/style/set/active/1/${BLUEBOTTLE_STYLE}`, {
@@ -79,8 +130,6 @@ export const setBBDefaults = async () => {
       method: "POST",
     }),
   ]);
-
-  await resetCurrentGame();
 
   const teams = await resetTeams();
 
@@ -99,4 +148,6 @@ export const setBBDefaults = async () => {
       body: JSON.stringify(defaultShowing),
     }),
   ]);
+
+  initializing = false;
 };

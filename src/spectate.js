@@ -2,7 +2,7 @@ import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
 import { refreshBrowserSourceCache, playAudioFile } from "./obs.js";
-import { setBBDefaults } from "./bb.js";
+import { setBBDefaults, waitForBB } from "./bb.js";
 
 const agent = new Agent({
   connect: {
@@ -315,7 +315,7 @@ class CurrentGame {
     this.isUpdating = true;
 
     if (!this.currentPlayer) {
-			this.isUpdating = false;
+      this.isUpdating = false;
       console.log("Not spectating anyone.");
       return;
     }
@@ -364,6 +364,8 @@ class CurrentGame {
 
       this.lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
+
+      await waitForBB();
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
