@@ -104,9 +104,12 @@ let chat;
     (chat, msg) =>
     /**
      * @param {string} region
-     * @param {string} value
+     * @param {string} _value
      */
-    async (region, value) => {
+    async (_region, _value) => {
+      const region = _region || "";
+      const value = _value || "";
+
       const matchesRegion = REGIONS[region.toUpperCase()];
 
       if (!matchesRegion) {
@@ -118,6 +121,14 @@ let chat;
       }
 
       const [gameName, tagLine] = value.split("#");
+
+      if (!gameName || !tagLine) {
+        return chat.reply(
+          msg.channelName,
+          msg.messageID,
+          `🦆 missing: playername#tagline`,
+        );
+      }
 
       const player = await spectatePlayer(
         gameName,
@@ -159,13 +170,14 @@ let chat;
       switch (action) {
         case "chart": {
           if (conductorCooldown.chart > Date.now()) {
-            conductorCooldown.default += Date.now() + 10_000;
+            conductorCooldown.default = Date.now() + 10_000;
             return chat.reply(msg.channelName, msg.messageID, "🦆 cooldown.");
           }
 
           const pre = conductorCooldown.chart;
+
           if (value === "gold") {
-            await Promise.all([showChart(["goldGraph", "sideInfoGold"])]);
+            await showChart(["goldGraph", "sideInfoGold"]);
             conductorCooldown.chart = Date.now() + 59_000;
           } else if (value === "exp") {
             await showChart(["sideInfoExp"]);
