@@ -24,32 +24,46 @@ const audioFiles = () => {
     .map((item) => `${OBS_AUDIO_DIRECTORY}\\${item.name}`);
 };
 
-export const refreshBrowserSourceCache = async () => {
+export const refreshSourceCache = async (source = OBS_BROWSER_SOURCE) => {
   if (!OBS_IP) {
     return;
   }
 
   try {
     await obs.call("PressInputPropertiesButton", {
-      inputName: OBS_BROWSER_SOURCE,
+      inputName: source,
       propertyName: "refreshnocache",
     });
-    console.log("Refreshed OBS browser source cache");
+    console.log(`Refreshed OBS ${source} source cache`);
   } catch (err) {
-    console.error("Failed to refresh OBS browser source cache", err);
+    console.error(`Failed to refresh OBS ${source} source cache`, err);
   }
 };
 
 async function setSourceVisibility(sceneName, sourceName, visible) {
-  const { sceneItems } = await obs.call("GetSceneItemList", { sceneName });
-  const item = sceneItems.find((i) => i.sourceName === sourceName);
-  if (!item) throw new Error("Source not found in scene");
+  if (!OBS_IP) {
+    return;
+  }
 
-  await obs.call("SetSceneItemEnabled", {
-    sceneName,
-    sceneItemId: item.sceneItemId,
-    sceneItemEnabled: visible,
-  });
+  try {
+    const { sceneItems } = await obs.call("GetSceneItemList", { sceneName });
+    const item = sceneItems.find((i) => i.sourceName === sourceName);
+    if (!item) {
+      throw new Error("Source not found in scene");
+    }
+
+    await obs.call("SetSceneItemEnabled", {
+      sceneName,
+      sceneItemId: item.sceneItemId,
+      sceneItemEnabled: visible,
+    });
+    console.log(`Set OBS visibility ${visible} for ${sourceName}`);
+  } catch (err) {
+    console.error(
+      `Failed to set OBS visibility ${visible} for ${sourceName}`,
+      err,
+    );
+  }
 }
 
 /**
@@ -60,11 +74,13 @@ export const setPostGame = async (visible) => {
     return;
   }
 
+  await refreshSourceCache("Post_Game");
+
   await setSourceVisibility("Scene", "Post-Game", visible);
 
   setTimeout(() => {
     setSourceVisibility("Scene", "Post-Game", false);
-  }, 120_000);
+  }, 60_000);
 };
 
 /**
@@ -141,8 +157,8 @@ export const playAudioFile = async (absolutePath) => {
 
     await obs.connect(`ws://${OBS_IP}:${OBS_PORT}`, OBS_PASSWORD);
 
-    refreshBrowserSourceCache();
+    refreshSourceCache();
   } else {
-    console.log("OBS refresh browser source cache disabled.");
+    console.log("OBS disabled.");
   }
 })();

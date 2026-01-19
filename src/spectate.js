@@ -1,11 +1,7 @@
 import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
-import {
-  refreshBrowserSourceCache,
-  playAudioFile,
-  setPostGame,
-} from "./obs.js";
+import { refreshSourceCache, playAudioFile, setPostGame } from "./obs.js";
 import { resetCurrentGame, setBBDefaults, waitForBB } from "./bb.js";
 
 const agent = new Agent({
@@ -393,7 +389,7 @@ class CurrentGame {
           this.lastGameTime === Number(gameData.gameTime).toFixed(0)
         ) {
           this.reset();
-          refreshBrowserSourceCache();
+          refreshSourceCache();
           resetCurrentGame();
           setPostGame(true);
           console.log("Exiting completed game.");
@@ -421,7 +417,7 @@ class CurrentGame {
             this.lastGameTime === Number(gameData.gameTime).toFixed(0)
           ) {
             this.reset();
-            refreshBrowserSourceCache();
+            refreshSourceCache();
             console.log("Exiting completed game a tad late.");
           } else {
             console.log("Found new game, but current game is still ongoing.");
@@ -461,7 +457,7 @@ class CurrentGame {
         }`,
       );
 
-      refreshBrowserSourceCache();
+      refreshSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
         this.chat("Loading client...");
