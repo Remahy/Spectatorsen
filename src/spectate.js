@@ -275,7 +275,7 @@ export const setTargetPlayer = async (currentGame, gameName) => {
   }
 
   const targetPlayer = {
-    selectionName: gameName,
+    selectionName: currentGame.customFollow || gameName,
     cameraAttached: true,
     cameraMode: "fps",
     selectionOffset: {
@@ -359,6 +359,7 @@ class CurrentGame {
   lastGameTime = -1;
   isDead = null;
   activeGame = false;
+	customFollow = null;
 
   /**
    * @type {Array<{ time: number, charts: string[] }>}
@@ -389,6 +390,7 @@ class CurrentGame {
     this.lastGameTime = -1;
     this.isDead = null;
     this.activeGame = false;
+		this.customFollow = null;
   }
 
   /**

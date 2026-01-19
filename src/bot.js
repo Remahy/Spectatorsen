@@ -207,6 +207,7 @@ let chat;
           }
 
           const gameName = value.split("#").shift().trim();
+          game.customFollow = gameName;
           const res = await setTargetPlayer(game, gameName);
 
           if (res) {
@@ -227,6 +228,7 @@ let chat;
           }
 
           const res = await setTargetAuto(game);
+          game.customFollow = null;
           if (res) {
             conductorCooldown.default = Date.now() + 10_000;
 
