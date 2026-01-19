@@ -1,0 +1,32 @@
+[
+  {
+    "time": 300,
+    "charts": [
+      "exp"
+    ]
+  },
+  {
+    "time": 421,
+    "charts": [
+      "cs"
+    ]
+  },
+  {
+    "time": 900,
+    "charts": [
+      "gold"
+    ]
+  },
+  {
+    "time": 1560,
+    "charts": [
+      "cinema"
+    ]
+  },
+  {
+    "time": 1800,
+    "charts": [
+      "gold"
+    ]
+  }
+]

@@ -1,13 +1,16 @@
 import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
+import bbSchedules from "../bbSchedulesObject.cjs";
 import {
   refreshSourceCache,
   playAudioFile,
   setPostGame,
   setSourceVisibility,
+  changeLobbyInfo,
 } from "./obs.js";
-import { resetCurrentGame, setBBDefaults, waitForBB } from "./bb.js";
+import { resetCurrentGame, setBBDefaults, showChart, waitForBB } from "./bb.js";
+import { getChampions } from "./ddragon.js";
 
 const agent = new Agent({
   connect: {
@@ -78,6 +81,119 @@ async function getCurrentGameData() {
     return {};
   }
 }
+
+const getLobbyData = async (game) => {
+  const champions = getChampions();
+
+  try {
+    let players = null;
+
+    try {
+      const playersPromisesRes = await Promise.allSettled(
+        (game.participants || []).map(async (p) => {
+          if (!p.puuid) {
+            return null;
+          }
+
+          const res = await fetch(
+            `https://${game.platformId.toLowerCase()}.api.riotgames.com/lol/league/v4/entries/by-puuid/${p.puuid}`,
+            {
+              headers: { "X-Riot-Token": API_KEY },
+            },
+          );
+
+          if (!res.ok) {
+            return null;
+          }
+
+          const entries = await res.json();
+
+          const soloQ =
+            entries.find((e) => e.queueType === "RANKED_SOLO_5x5") || null;
+
+          return {
+            name: p.riotId,
+            champion: champions.find(({ key }) => key === String(p.championId))
+              ?.name,
+            soloQ,
+            teamId: p.teamId,
+          };
+        }),
+      );
+
+      const playersRes = playersPromisesRes
+        .map(({ value }) => value)
+        .filter(Boolean);
+
+      players = playersRes.reduce((obj, participant) => {
+        const teamName = participant.teamId === 100 ? "BLUE" : "RED";
+
+        if (!obj[teamName]) {
+          obj[teamName] = [];
+        }
+
+        obj[teamName].push({
+          champion: participant.champion,
+          rank: participant.soloQ?.tier
+            ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} (${participant.soloQ?.leaguePoints}) ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
+            : "UNRANKED",
+        });
+
+        return obj;
+      }, {});
+    } catch (err) {
+      console.error("Failed to get player lobby stats.", err);
+    }
+
+    const bannedChampionsRaw = structuredClone(
+      game.bannedChampions || [],
+    )?.sort((a, b) => a.pickTurn - b.pickTurn);
+
+    const bannedChampions = bannedChampionsRaw.reduce((obj, ban) => {
+      const teamName = ban.teamId === 100 ? "BLUE" : "RED";
+
+      if (!obj[teamName]) {
+        obj[teamName] = [];
+      }
+
+      obj[teamName].push(
+        champions.find(({ key }) => key === String(ban.championId))?.name,
+      );
+
+      return obj;
+    }, {});
+
+    return { players, bannedChampions };
+  } catch (err) {
+    console.error("Something went wrong getting player statistics.", err);
+    return {};
+  }
+};
+
+const updateLobbyInfo = async (game) => {
+  const { players, bannedChampions } = await getLobbyData(game);
+
+  const layout = `Start: ${new Date(game.gameStartTime).toUTCString()}
+
+${
+  bannedChampions
+    ? `Bans B:
+${bannedChampions["BLUE"].join(", ")}
+Bans R:
+${bannedChampions["RED"].join(", ")}
+`
+    : ""
+}${
+    players
+      ? `Ranks B:
+${players["BLUE"].map(({ champion, rank }) => `${champion}: ${rank}`)}
+Ranks R:
+${players["RED"].map(({ champion, rank }) => `${champion}: ${rank}`)}`
+      : ""
+  }`;
+
+  return changeLobbyInfo(layout);
+};
 
 function parsePlayerData(data = {}, gameName) {
   const { allPlayers = [] } = data || {};
@@ -218,6 +334,11 @@ class CurrentGame {
   isDead = null;
   activeGame = false;
 
+  /**
+   * @type {Array<{ time: number, charts: string[] }>}
+   */
+  schedules = [];
+
   /** @type {(msg: string) => void} */
   chat = () => {
     /* noop */
@@ -234,6 +355,7 @@ class CurrentGame {
     clearTimeout(this.teamfightUpdateTimer);
     shutdownSpectator();
     setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
+    this.schedules = structuredClone(bbSchedules);
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
     this.keepFocusTimer = null;
@@ -264,17 +386,25 @@ class CurrentGame {
       // Always maintain UI.
       renderDefaultUI();
 
+      let data;
       let gameData;
 
       try {
-        gameData = await getCurrentGameData();
+        data = await getCurrentGameData();
+        gameData = data.gameData;
       } catch {
         this.reset();
         return;
       }
 
+      if (this.schedules[0].time < gameData.gameTime) {
+        const schedule = this.schedules.shift();
+        console.log("Auto-chart:", schedule.charts.join(", "));
+        showChart(schedule.charts);
+      }
+
       const { isDead = false } = parsePlayerData(
-        gameData,
+        data,
         this.currentPlayer.gameName,
       );
 
@@ -294,7 +424,7 @@ class CurrentGame {
         }, 2500);
       }
 
-      if (this.isDead === null) {
+      if (this.isDead === null && this.activeGame) {
         await setTargetAuto(this);
         console.log("START autofocus.");
 
@@ -305,6 +435,14 @@ class CurrentGame {
         }, 10_000);
 
         this.isDead = isDead;
+
+        for (let index = 0; index < this.schedules.length; index++) {
+          if (this.schedules[index].time < gameData.gameTime) {
+            this.schedules[index] = null;
+          }
+        }
+
+        this.schedules = this.schedules.filter(Boolean);
         return;
       }
 
@@ -316,7 +454,7 @@ class CurrentGame {
     }, 500);
   }
 
-  autoDirector() {
+  autoDirector(game) {
     const checkIsLive = () => {
       return setTimeout(async () => {
         const isInReplay = await checkIsInReplay();
@@ -330,8 +468,12 @@ class CurrentGame {
         renderDefaultUI();
         refreshSourceCache(OBS_BLUEBOTTLE_SOURCE);
 
+        showChart(["runes"]);
+
+        updateLobbyInfo(game);
+
         this.keepFocusTimer = this.focusPlayerTimeout();
-        this.teamfightUpdateTimer = this.teamfightUpdate();
+        // this.teamfightUpdateTimer = this.teamfightUpdate();
       }, 10_000);
     };
 
@@ -397,7 +539,11 @@ class CurrentGame {
           this.lastGameTime === Number(gameData.gameTime).toFixed(0)
         ) {
           this.reset();
-          refreshSourceCache();
+
+          setTimeout(() => {
+            refreshSourceCache();
+          }, 5000);
+
           resetCurrentGame();
           setPostGame(true);
           console.log("Exiting completed game.");
@@ -426,6 +572,7 @@ class CurrentGame {
           ) {
             this.reset();
             refreshSourceCache();
+            setPostGame(true, 60_000);
             console.log("Exiting completed game a tad late.");
           } else {
             console.log("Found new game, but current game is still ongoing.");
@@ -473,7 +620,7 @@ class CurrentGame {
         launchSpectator(game);
         this.activeGame = true;
 
-        this.autoDirector();
+        this.autoDirector(game);
       }, spectatorTimeout);
     } catch (err) {
       console.error("Watcher error:", err);

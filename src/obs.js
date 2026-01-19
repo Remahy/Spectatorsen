@@ -8,6 +8,7 @@ const {
   OBS_BROWSER_SOURCE,
   OBS_BROWSER_SOURCE_URL,
   OBS_POST_GAME_SOURCE,
+  OBS_LOBBY_SOURCE,
   OBS_AUDIO_SOURCE,
   OBS_AUDIO_DIRECTORY,
 } = process.env;
@@ -70,7 +71,7 @@ export const setSourceVisibility = async (sceneName, sourceName, visible) => {
 /**
  * @param {boolean} visible
  */
-export const setPostGame = async (visible) => {
+export const setPostGame = async (visible, timer = 60_000) => {
   if (!OBS_IP || !OBS_POST_GAME_SOURCE) {
     return;
   }
@@ -81,7 +82,7 @@ export const setPostGame = async (visible) => {
 
   setTimeout(() => {
     setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
-  }, 60_000);
+  }, timer);
 };
 
 /**
@@ -152,6 +153,30 @@ export const playAudioFile = async (absolutePath) => {
   } catch (err) {
     console.error("Failed to play audio file in OBS", err);
   }
+};
+
+export const changeLobbyInfo = async (text, hideTimer = 30_000) => {
+  if (!OBS_IP) {
+    return;
+  }
+
+  try {
+    await obs.call("SetInputSettings", {
+      inputName: OBS_LOBBY_SOURCE,
+      inputSettings: {
+        text,
+      },
+    });
+
+    await setSourceVisibility("Scene", OBS_LOBBY_SOURCE, true);
+  } catch (err) {
+    console.error("Failed to change lobby info OBS", err);
+    setSourceVisibility("Scene", OBS_LOBBY_SOURCE, true);
+  }
+
+  setTimeout(async () => {
+    await setSourceVisibility("Scene", OBS_LOBBY_SOURCE, false);
+  }, hideTimer);
 };
 
 (async () => {
