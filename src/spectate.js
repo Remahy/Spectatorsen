@@ -9,6 +9,8 @@ import {
 } from "./obs.js";
 import { resetCurrentGame, setBBDefaults, waitForBB } from "./bb.js";
 
+const { OBS_POST_GAME_SOURCE } = process.env;
+
 const agent = new Agent({
   connect: {
     rejectUnauthorized: false,
@@ -232,7 +234,7 @@ class CurrentGame {
     clearTimeout(this.keepFocusTimer);
     clearTimeout(this.teamfightUpdateTimer);
     shutdownSpectator();
-    setSourceVisibility("Scene", "Post-Game", false);
+    setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
     this.keepFocusTimer = null;

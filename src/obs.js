@@ -7,6 +7,7 @@ const {
   OBS_PASSWORD,
   OBS_BROWSER_SOURCE,
   OBS_BROWSER_SOURCE_URL,
+  OBS_POST_GAME_SOURCE,
   OBS_AUDIO_SOURCE,
   OBS_AUDIO_DIRECTORY,
 } = process.env;
@@ -70,16 +71,16 @@ export const setSourceVisibility = async (sceneName, sourceName, visible) => {
  * @param {boolean} visible
  */
 export const setPostGame = async (visible) => {
-  if (!OBS_IP) {
+  if (!OBS_IP || !OBS_POST_GAME_SOURCE) {
     return;
   }
 
-  await refreshSourceCache("Post_Game");
+  await refreshSourceCache(OBS_POST_GAME_SOURCE);
 
-  await setSourceVisibility("Scene", "Post-Game", visible);
+  await setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, visible);
 
   setTimeout(() => {
-    setSourceVisibility("Scene", "Post-Game", false);
+    setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
   }, 60_000);
 };
 
