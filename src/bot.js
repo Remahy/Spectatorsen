@@ -137,7 +137,7 @@ let chat;
 
   const conductorCooldown = {
     chart: Date.now(),
-    // default: Date.now(),
+    default: Date.now(),
   };
 
   /**
@@ -152,8 +152,16 @@ let chat;
     async (commandString) => {
       const [action, value] = commandString.split(" ").map((v) => v.trim());
 
+      if (conductorCooldown.default > Date.now()) {
+        return;
+      }
+
       switch (action) {
         case "chart": {
+          if (conductorCooldown.chart > Date.now()) {
+            return chat.reply(msg.channelName, msg.messageID, "cooldown.");
+          }
+
           const pre = conductorCooldown.chart;
           if (value === "gold") {
             await Promise.all([showChart(["goldGraph", "sideInfoGold"])]);
@@ -161,7 +169,7 @@ let chat;
           } else if (value === "exp") {
             await showChart(["sideInfoExp"]);
             conductorCooldown.chart = Date.now() + 59_000;
-          } else if (value === "farm") {
+          } else if (value === "cs") {
             await showChart(["sideInfoCreepscore"]);
             conductorCooldown.chart = Date.now() + 59_000;
           } else if (value === "cinema") {
@@ -170,6 +178,7 @@ let chat;
           }
 
           if (conductorCooldown.chart > pre) {
+            conductorCooldown.default = Date.now() + 10_000;
             return chat.reply(
               msg.channelName,
               msg.messageID,
@@ -188,6 +197,8 @@ let chat;
           const res = await setTargetPlayer(game, gameName);
 
           if (res) {
+            conductorCooldown.default = Date.now() + 10_000;
+
             return chat.reply(
               msg.channelName,
               msg.messageID,
@@ -204,6 +215,8 @@ let chat;
 
           const res = await setTargetAuto(game);
           if (res) {
+            conductorCooldown.default = Date.now() + 10_000;
+
             return chat.reply(
               msg.channelName,
               msg.messageID,
@@ -218,7 +231,7 @@ let chat;
       return chat.reply(
         msg.channelName,
         msg.messageID,
-        "🦆 unknown conductor action, supported actions: chart <cinema|gold|exp|farm>, (mod-only) follow <playername>, (mod-only) auto. 30 seconds cooldown.",
+        "🦆 unknown conductor action, supported actions: chart <cinema|gold|exp|cs>, (mod-only) follow <playername>, (mod-only) auto. 30 seconds cooldown.",
       );
     };
 
