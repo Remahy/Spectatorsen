@@ -295,7 +295,7 @@ class CurrentGame {
           console.log("START focusing on player.");
           await setTargetAuto(this);
           this.keepFocusTimer = this.focusPlayerTimeout();
-        }, 5000);
+        }, 10_000);
 
         this.isDead = isDead;
         return;
