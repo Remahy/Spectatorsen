@@ -40,7 +40,7 @@ export const refreshSourceCache = async (source = OBS_BROWSER_SOURCE) => {
   }
 };
 
-async function setSourceVisibility(sceneName, sourceName, visible) {
+export const setSourceVisibility = async (sceneName, sourceName, visible) => {
   if (!OBS_IP) {
     return;
   }
@@ -64,7 +64,7 @@ async function setSourceVisibility(sceneName, sourceName, visible) {
       err,
     );
   }
-}
+};
 
 /**
  * @param {boolean} visible

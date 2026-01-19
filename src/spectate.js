@@ -1,7 +1,12 @@
 import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
-import { refreshSourceCache, playAudioFile, setPostGame } from "./obs.js";
+import {
+  refreshSourceCache,
+  playAudioFile,
+  setPostGame,
+  setSourceVisibility,
+} from "./obs.js";
 import { resetCurrentGame, setBBDefaults, waitForBB } from "./bb.js";
 
 const agent = new Agent({
@@ -227,6 +232,7 @@ class CurrentGame {
     clearTimeout(this.keepFocusTimer);
     clearTimeout(this.teamfightUpdateTimer);
     shutdownSpectator();
+    setSourceVisibility("Scene", "Post-Game", false);
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
     this.keepFocusTimer = null;
