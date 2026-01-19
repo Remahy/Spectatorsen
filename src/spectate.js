@@ -135,7 +135,7 @@ const getLobbyData = async (game) => {
           champion: participant.champion,
           rank: participant.soloQ,
           fullRank: participant.soloQ?.tier
-            ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} (${participant.soloQ?.leaguePoints}) ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
+            ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} ${participant.soloQ?.leaguePoints}LP ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
             : "UNRANKED",
         });
 
@@ -158,8 +158,7 @@ const getLobbyData = async (game) => {
 
       obj[teamName].push(
         champions.find(({ key }) => key === String(ban.championId))?.name ||
-          ban.championId ||
-          "[No ban]",
+          (ban.championId !== -1 ? ban.championId : "[No ban]"),
       );
 
       return obj;
