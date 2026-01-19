@@ -159,7 +159,8 @@ let chat;
       switch (action) {
         case "chart": {
           if (conductorCooldown.chart > Date.now()) {
-            return chat.reply(msg.channelName, msg.messageID, "cooldown.");
+            conductorCooldown.default += Date.now() + 10_000;
+            return chat.reply(msg.channelName, msg.messageID, "🦆 cooldown.");
           }
 
           const pre = conductorCooldown.chart;
