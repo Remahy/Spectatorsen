@@ -181,9 +181,9 @@ const updateLobbyInfo = async (currentGame, game) => {
 
 ${
   bannedChampions
-    ? `Bans B:
+    ? `Bans Blue:
 ${bannedChampions.BLUE.join(", ")}
-Bans R:
+Bans Red:
 ${bannedChampions.RED.join(", ")}
 
 `
