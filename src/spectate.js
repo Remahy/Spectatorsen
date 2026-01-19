@@ -221,11 +221,15 @@ ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("
   return changeLobbyInfo(layout);
 };
 
-function parsePlayerData(data = {}, gameName) {
+function parsePlayerData(data = {}, name) {
   const { allPlayers = [] } = data || {};
 
+  const lowerCaseName = name.toLowerCase();
+
   const player = allPlayers.find(
-    (player) => player.riotIdGameName.toLowerCase() === gameName.toLowerCase(),
+    (player) =>
+      player.riotIdGameName.toLowerCase() === lowerCaseName ||
+      player.championName.toLowerCase() === lowerCaseName,
   );
 
   return player || {};
@@ -433,7 +437,7 @@ class CurrentGame {
 
       const { isDead = false } = parsePlayerData(
         data,
-        this.currentPlayer.gameName,
+        this.customFollow || this.currentPlayer.gameName,
       );
 
       if (isDead === this.isDead && this.activeGame) {
