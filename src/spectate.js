@@ -423,7 +423,7 @@ class CurrentGame {
         return;
       }
 
-      if (this.schedules[0].time < gameData.gameTime) {
+      if (this.schedules.length && this.schedules[0].time < gameData.gameTime) {
         const schedule = this.schedules.shift();
         console.log("Auto-chart:", schedule.charts.join(", "));
         showChart(schedule.charts);
