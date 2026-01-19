@@ -9,15 +9,14 @@ import {
 } from "./obs.js";
 import { resetCurrentGame, setBBDefaults, waitForBB } from "./bb.js";
 
-const { OBS_POST_GAME_SOURCE } = process.env;
-
 const agent = new Agent({
   connect: {
     rejectUnauthorized: false,
   },
 });
 
-const { API_KEY, REGION } = process.env;
+const { API_KEY, REGION, OBS_POST_GAME_SOURCE, OBS_BLUEBOTTLE_SOURCE } =
+  process.env;
 
 async function getPUUID(gameName, tagLine, region = REGION) {
   try {
@@ -329,6 +328,7 @@ class CurrentGame {
         }
 
         renderDefaultUI();
+        refreshSourceCache(OBS_BLUEBOTTLE_SOURCE);
 
         this.keepFocusTimer = this.focusPlayerTimeout();
         this.teamfightUpdateTimer = this.teamfightUpdate();
