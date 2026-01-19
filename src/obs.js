@@ -40,6 +40,33 @@ export const refreshBrowserSourceCache = async () => {
   }
 };
 
+async function setSourceVisibility(sceneName, sourceName, visible) {
+  const { sceneItems } = await obs.call("GetSceneItemList", { sceneName });
+  const item = sceneItems.find((i) => i.sourceName === sourceName);
+  if (!item) throw new Error("Source not found in scene");
+
+  await obs.call("SetSceneItemEnabled", {
+    sceneName,
+    sceneItemId: item.sceneItemId,
+    sceneItemEnabled: visible,
+  });
+}
+
+/**
+ * @param {boolean} visible
+ */
+export const setPostGame = async (visible) => {
+  if (!OBS_IP) {
+    return;
+  }
+
+  await setSourceVisibility("Scene", "Post-Game", visible);
+
+  setTimeout(() => {
+    setSourceVisibility("Scene", "Post-Game", false);
+  }, 120_000);
+};
+
 /**
  * @param {import('./spectate').Player} player
  */

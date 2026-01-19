@@ -1,8 +1,12 @@
 import { exec, execSync } from "child_process";
 import { fetch, Agent } from "undici";
 
-import { refreshBrowserSourceCache, playAudioFile } from "./obs.js";
-import { setBBDefaults, waitForBB } from "./bb.js";
+import {
+  refreshBrowserSourceCache,
+  playAudioFile,
+  setPostGame,
+} from "./obs.js";
+import { resetCurrentGame, setBBDefaults, waitForBB } from "./bb.js";
 
 const agent = new Agent({
   connect: {
@@ -103,20 +107,57 @@ function renderDefaultUI() {
     interfaceAll: true,
     interfaceAnnounce: true,
     interfaceChat: true,
-    interfaceFrames: true,
+    interfaceFrames: false,
     interfaceKillCallouts: true,
     interfaceMinimap: true,
     interfaceNeutralTimers: true,
     interfaceQuests: true,
     interfaceReplay: false,
-    interfaceScore: true,
-    interfaceScoreboard: true,
+    interfaceScore: false,
+    interfaceScoreboard: false,
     interfaceTarget: true,
     interfaceTimeline: false,
   };
 
   return changeRender(uiSettings);
 }
+
+/**
+ * @param {CurrentGame} currentGame
+ */
+export const setTargetPlayer = async (currentGame, gameName) => {
+  if (!currentGame.activeGame) {
+    return;
+  }
+
+  const targetPlayer = {
+    selectionName: gameName,
+    cameraAttached: true,
+    cameraMode: "fps",
+    selectionOffset: {
+      x: 0.0,
+      y: 1911.85,
+      z: -1200.0,
+    },
+  };
+
+  return changeRender(targetPlayer);
+};
+
+/**
+ * @param {CurrentGame} currentGame
+ */
+export const setTargetAuto = async (currentGame) => {
+  if (!currentGame.activeGame) {
+    return;
+  }
+
+  const targetAuto = {
+    cameraMode: "top",
+  };
+
+  return changeRender(targetAuto);
+};
 
 function launchSpectator(game) {
   const { encryptionKey } = game.observers;
@@ -188,11 +229,12 @@ class CurrentGame {
   reset() {
     clearTimeout(this.startAutoDirectorTimer);
     clearTimeout(this.keepFocusTimer);
+    clearTimeout(this.teamfightUpdateTimer);
     shutdownSpectator();
-    setBBDefaults();
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
     this.keepFocusTimer = null;
+    this.teamfightUpdateTimer = null;
     this.lastGameTime = -1;
     this.isDead = null;
     this.activeGame = false;
@@ -215,21 +257,6 @@ class CurrentGame {
   }
 
   focusPlayerTimeout() {
-    const targetPlayer = {
-      selectionName: this.currentPlayer.gameName,
-      cameraAttached: true,
-      cameraMode: "fps",
-      selectionOffset: {
-        x: 0.0,
-        y: 1911.85,
-        z: -1200.0,
-      },
-    };
-
-    const targetEveryone = {
-      cameraMode: "top",
-    };
-
     return setTimeout(async () => {
       // Always maintain UI.
       renderDefaultUI();
@@ -254,23 +281,23 @@ class CurrentGame {
       }
 
       if (!isDead) {
-        await changeRender(targetPlayer);
+        await setTargetPlayer(this, this.currentPlayer.gameName);
         console.log("Focusing on player.");
       } else {
         playAudioFile();
         setTimeout(() => {
-          changeRender(targetEveryone);
+          setTargetAuto(this);
           console.log("Autofocus.");
         }, 2500);
       }
 
       if (this.isDead === null) {
-        await changeRender(targetEveryone);
+        await setTargetAuto(this);
         console.log("START autofocus.");
 
         setTimeout(async () => {
           console.log("START focusing on player.");
-          await changeRender(targetPlayer);
+          await setTargetAuto(this);
           this.keepFocusTimer = this.focusPlayerTimeout();
         }, 5000);
 
@@ -300,10 +327,28 @@ class CurrentGame {
         renderDefaultUI();
 
         this.keepFocusTimer = this.focusPlayerTimeout();
+        this.teamfightUpdateTimer = this.teamfightUpdate();
       }, 10_000);
     };
 
     checkIsLive();
+  }
+
+  teamfightUpdate() {
+    return setTimeout(async () => {
+      let gameData;
+
+      try {
+        gameData = await getCurrentGameData();
+      } catch {
+        this.reset();
+        return;
+      }
+
+      if (this.activeGame) {
+        this.teamfightUpdateTimer = this.teamfightUpdate();
+      }
+    }, 75);
   }
 
   async update() {
@@ -349,6 +394,8 @@ class CurrentGame {
         ) {
           this.reset();
           refreshBrowserSourceCache();
+          resetCurrentGame();
+          setPostGame(true);
           console.log("Exiting completed game.");
         } else {
           this.lastGameTime = gameData?.gameTime
@@ -391,6 +438,7 @@ class CurrentGame {
       this.lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
 
+      setBBDefaults();
       await waitForBB();
 
       const msSinceStart = Date.now() - game.gameStartTime;
@@ -416,6 +464,8 @@ class CurrentGame {
       refreshBrowserSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
+        this.chat("Loading client...");
+
         launchSpectator(game);
         this.activeGame = true;
 

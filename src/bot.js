@@ -6,8 +6,9 @@ import {
 } from "@mastondzn/dank-twitch-irc";
 
 import { regionKeys, REGIONS } from "./regions.js";
-import game, { Player } from "./spectate.js";
+import game, { Player, setTargetAuto, setTargetPlayer } from "./spectate.js";
 import { setNewPlayerBrowserSource } from "./obs.js";
+import { showChart } from "./bb.js";
 // import { TwitchAuth } from "./token.js";
 // import pkg from "../packageObject.cjs";
 
@@ -134,6 +135,93 @@ let chat;
       );
     };
 
+  const conductorCooldown = {
+    chart: Date.now(),
+    // default: Date.now(),
+  };
+
+  /**
+   * @param {ChatClient} chat
+   * @param {PrivmsgMessage} msg
+   */
+  const conductorCommandParse =
+    (chat, msg) =>
+    /**
+     * @param {commandString} value
+     */
+    async (commandString) => {
+      const [action, value] = commandString.split(" ").map((v) => v.trim());
+
+      switch (action) {
+        case "chart": {
+          const pre = conductorCooldown.chart;
+          if (value === "gold") {
+            await Promise.all([showChart(["goldGraph", "sideInfoGold"])]);
+            conductorCooldown.chart = Date.now() + 59_000;
+          } else if (value === "exp") {
+            await showChart(["sideInfoExp"]);
+            conductorCooldown.chart = Date.now() + 59_000;
+          } else if (value === "farm") {
+            await showChart(["sideInfoCreepscore"]);
+            conductorCooldown.chart = Date.now() + 59_000;
+          } else if (value === "cinema") {
+            await showChart(["teamfightNoDamageGraph"]);
+            conductorCooldown.chart = Date.now() + 59_000;
+          }
+
+          if (conductorCooldown.chart > pre) {
+            return chat.reply(
+              msg.channelName,
+              msg.messageID,
+              `🦆 showing graph for 30 seconds: ${value}`,
+            );
+          }
+
+          break;
+        }
+        case "follow": {
+          if (!msg.isMod) {
+            return;
+          }
+
+          const gameName = value.split("#").shift().trim();
+          const res = await setTargetPlayer(game, gameName);
+
+          if (res) {
+            return chat.reply(
+              msg.channelName,
+              msg.messageID,
+              `🦆 enabled focus-mode on ${gameName}.`,
+            );
+          } else {
+            return chat.reply(msg.channelName, msg.messageID, "🦆 unable to.");
+          }
+        }
+        case "auto": {
+          if (!msg.isMod) {
+            return;
+          }
+
+          const res = await setTargetAuto(game);
+          if (res) {
+            return chat.reply(
+              msg.channelName,
+              msg.messageID,
+              "🦆 enabled browsing around.",
+            );
+          } else {
+            return chat.reply(msg.channelName, msg.messageID, "🦆 unable to.");
+          }
+        }
+      }
+
+      return chat.reply(
+        msg.channelName,
+        msg.messageID,
+        "🦆 unknown conductor action, supported actions: chart <cinema|gold|exp|farm>, (mod-only) follow <playername>, (mod-only) auto. 30 seconds cooldown.",
+      );
+    };
+
   /**
    * @param {ChatClient} chat
    * @param {PrivmsgMessage} msg
@@ -149,6 +237,11 @@ let chat;
 
     if (command === "spectate") {
       spectateCommandParse(chat, msg)(region, player.join(" "));
+      return;
+    }
+
+    if (command === "conductor") {
+      conductorCommandParse(chat, msg)([region, ...player].join(" "));
       return;
     }
 

@@ -46,6 +46,44 @@ export const waitForBB = async () => {
   }
 };
 
+const changeShowing = (showing) => {
+  return fetch(`${BLUEBOTTLE_ENDPOINT}/api/ingame/showing`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(showing),
+  });
+};
+
+export const showChart = async (chartNames) => {
+  const showing = {};
+
+  for (let index = 0; index < chartNames.length; index += 1) {
+    const chartName = chartNames[index];
+    showing[chartName] = {
+      show: true,
+      timePeriod: 0,
+      overlaysToDisable: [],
+    };
+  }
+
+  await Promise.allSettled([changeShowing(showing)]);
+
+  setTimeout(async () => {
+    const hiding = {};
+
+    for (let index = 0; index < chartNames.length; index += 1) {
+      const chartName = chartNames[index];
+      hiding[chartName] = {
+        timePeriod: 0,
+        show: false,
+        overlaysToDisable: [],
+      };
+    }
+
+    await Promise.allSettled([changeShowing(hiding)]);
+  }, 29_000);
+};
+
 const restartBB = async () => {
   try {
     const exeName = path.basename(BLUEBOTTLE_EXECUTABLE);
@@ -126,7 +164,10 @@ export const setBBDefaults = async () => {
   await Promise.allSettled([
     fetch(`${BLUEBOTTLE_ENDPOINT}/api/style/set/active/1/${BLUEBOTTLE_STYLE}`, {
       headers: { "Content-Type": "application/json" },
-
+      method: "POST",
+    }),
+    fetch(`${BLUEBOTTLE_ENDPOINT}/api/style/set/active/2/${BLUEBOTTLE_STYLE}`, {
+      headers: { "Content-Type": "application/json" },
       method: "POST",
     }),
   ]);
@@ -141,13 +182,7 @@ export const setBBDefaults = async () => {
     }),
   ]);
 
-  await Promise.allSettled([
-    fetch(`${BLUEBOTTLE_ENDPOINT}/api/ingame/showing`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(defaultShowing),
-    }),
-  ]);
+  await Promise.allSettled([changeShowing(defaultShowing)]);
 
   initializing = false;
 };
