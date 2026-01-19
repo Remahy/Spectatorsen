@@ -299,7 +299,7 @@ class CurrentGame {
 
         setTimeout(async () => {
           console.log("START focusing on player.");
-          await setTargetAuto(this);
+          await setTargetPlayer(this, this.currentPlayer.gameName);
           this.keepFocusTimer = this.focusPlayerTimeout();
         }, 10_000);
 
