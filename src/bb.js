@@ -2,6 +2,7 @@ import { exec, execSync } from "child_process";
 import path from "path";
 import { fetch } from "undici";
 import bbDefaultsObject from "../bbdefaultsObject.cjs";
+import { refreshSourceCache } from "./obs";
 
 const { defaultMatch, defaultShowing, defaultTeam1, defaultTeam2 } =
   bbDefaultsObject;
@@ -11,6 +12,7 @@ const {
   BLUEBOTTLE_EXECUTABLE,
   BLUEBOTTLE_ENDPOINT,
   BLUEBOTTLE_STYLE,
+  OBS_BLUEBOTTLE_SOURCE,
 } = process.env;
 
 export const resetCurrentGame = async () => {
@@ -187,6 +189,8 @@ export const setBBDefaults = async () => {
   ]);
 
   await Promise.allSettled([changeShowing(defaultShowing)]);
+
+  refreshSourceCache(OBS_BLUEBOTTLE_SOURCE);
 
   initializing = false;
 };

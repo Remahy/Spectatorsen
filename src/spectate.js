@@ -134,7 +134,8 @@ const getLobbyData = async (game) => {
 
         obj[teamName].push({
           champion: participant.champion,
-          rank: participant.soloQ?.tier
+					rank: participant.soloQ,
+          fullRank: participant.soloQ?.tier
             ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} (${participant.soloQ?.leaguePoints}) ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
             : "UNRANKED",
         });
@@ -170,7 +171,10 @@ const getLobbyData = async (game) => {
   }
 };
 
-const updateLobbyInfo = async (game) => {
+/**
+ * @param {CurrentGame} currentGame
+ */
+const updateLobbyInfo = async (currentGame, game) => {
   const { players, bannedChampions } = await getLobbyData(game);
 
   const layout = `Start: ${new Date(game.gameStartTime).toUTCString()}
@@ -178,19 +182,22 @@ const updateLobbyInfo = async (game) => {
 ${
   bannedChampions
     ? `Bans B:
-${bannedChampions["BLUE"].join(", ")}
+${bannedChampions.BLUE.join(", ")}
 Bans R:
-${bannedChampions["RED"].join(", ")}
+${bannedChampions.RED.join(", ")}
 `
     : ""
 }${
     players
       ? `Ranks B:
-${players["BLUE"].map(({ champion, rank }) => `${champion}: ${rank}`)}
+${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join('\n')}
 Ranks R:
-${players["RED"].map(({ champion, rank }) => `${champion}: ${rank}`)}`
+${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join('\n')}`
       : ""
   }`;
+
+	currentGame.chat(`Bans blue team: ${bannedChampions.BLUE.join(", ")}. Bans red team: ${bannedChampions.RED.join(", ")}.`);
+
 
   return changeLobbyInfo(layout);
 };
@@ -466,11 +473,10 @@ class CurrentGame {
         }
 
         renderDefaultUI();
-        refreshSourceCache(OBS_BLUEBOTTLE_SOURCE);
 
         showChart(["runes"]);
 
-        updateLobbyInfo(game);
+        updateLobbyInfo(this, game);
 
         this.keepFocusTimer = this.focusPlayerTimeout();
         // this.teamfightUpdateTimer = this.teamfightUpdate();

@@ -1,32 +1,39 @@
 [
-  {
-    "time": 300,
-    "charts": [
-      "exp"
-    ]
-  },
-  {
-    "time": 421,
-    "charts": [
-      "cs"
-    ]
-  },
-  {
-    "time": 900,
-    "charts": [
-      "gold"
-    ]
-  },
-  {
-    "time": 1560,
-    "charts": [
-      "cinema"
-    ]
-  },
-  {
-    "time": 1800,
-    "charts": [
-      "gold"
-    ]
-  }
+	{
+		"time": 300,
+		"charts": [
+			"sideInfoExp"
+		]
+	},
+	{
+		"time": 421,
+		"charts": [
+			"sideInfoCreepscore"
+		]
+	},
+	{
+		"time": 900,
+		"charts": [
+			"goldGraph",
+			"sideInfoGold"
+		]
+	},
+	{
+		"time": 1200,
+		"charts": [
+			"sideInfoExp"
+		]
+	},
+	{
+		"time": 1560,
+		"charts": [
+			"teamfightNoDamageGraph"
+		]
+	},
+	{
+		"time": 1800,
+		"charts": [
+			"goldGraph"
+		]
+	}
 ]
