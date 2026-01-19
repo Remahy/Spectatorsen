@@ -359,7 +359,7 @@ class CurrentGame {
   lastGameTime = -1;
   isDead = null;
   activeGame = false;
-	customFollow = null;
+  customFollow = null;
 
   /**
    * @type {Array<{ time: number, charts: string[] }>}
@@ -376,12 +376,11 @@ class CurrentGame {
 
   constructor() {}
 
-  reset() {
+  async reset() {
     clearTimeout(this.startAutoDirectorTimer);
     clearTimeout(this.keepFocusTimer);
     clearTimeout(this.teamfightUpdateTimer);
     shutdownSpectator();
-    setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
     this.schedules = structuredClone(bbSchedules);
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
@@ -390,7 +389,8 @@ class CurrentGame {
     this.lastGameTime = -1;
     this.isDead = null;
     this.activeGame = false;
-		this.customFollow = null;
+    this.customFollow = null;
+    await setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
   }
 
   /**
@@ -565,7 +565,7 @@ class CurrentGame {
           gameData?.gameTime &&
           this.lastGameTime === Number(gameData.gameTime).toFixed(0)
         ) {
-          this.reset();
+          await this.reset();
 
           setTimeout(() => {
             refreshSourceCache();

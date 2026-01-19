@@ -71,7 +71,7 @@ export const setSourceVisibility = async (sceneName, sourceName, visible) => {
 /**
  * @param {boolean} visible
  */
-export const setPostGame = async (visible, timer = 60_000) => {
+export const setPostGame = async (visible, timer = 90_000) => {
   if (!OBS_IP || !OBS_POST_GAME_SOURCE) {
     return;
   }

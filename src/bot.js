@@ -161,7 +161,7 @@ let chat;
      * @param {commandString} value
      */
     async (commandString) => {
-      const [action, value] = commandString.split(" ").map((v) => v.trim());
+      const [action, ..._value] = commandString.split(" ").map((v) => v.trim());
 
       if (conductorCooldown.default > Date.now()) {
         return;
@@ -176,6 +176,7 @@ let chat;
 
           const pre = conductorCooldown.chart;
 
+          const value = _value.join(" ");
           if (value === "gold") {
             await showChart(["goldGraph", "sideInfoGold"]);
             conductorCooldown.chart = Date.now() + 59_000;
@@ -201,11 +202,13 @@ let chat;
 
           break;
         }
-        case "follow": {
+        case "follow":
+        case "spectate": {
           if (!msg.isMod) {
             return;
           }
 
+          const value = _value.join(" ");
           const gameName = value.split("#").shift().trim();
           game.customFollow = gameName;
           const res = await setTargetPlayer(game, gameName);
