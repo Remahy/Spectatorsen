@@ -18,8 +18,7 @@ const agent = new Agent({
   },
 });
 
-const { API_KEY, REGION, OBS_POST_GAME_SOURCE, OBS_BLUEBOTTLE_SOURCE } =
-  process.env;
+const { API_KEY, REGION, OBS_POST_GAME_SOURCE } = process.env;
 
 async function getPUUID(gameName, tagLine, region = REGION) {
   try {
@@ -134,7 +133,7 @@ const getLobbyData = async (game) => {
 
         obj[teamName].push({
           champion: participant.champion,
-					rank: participant.soloQ,
+          rank: participant.soloQ,
           fullRank: participant.soloQ?.tier
             ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} (${participant.soloQ?.leaguePoints}) ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
             : "UNRANKED",
@@ -158,7 +157,9 @@ const getLobbyData = async (game) => {
       }
 
       obj[teamName].push(
-        champions.find(({ key }) => key === String(ban.championId))?.name,
+        champions.find(({ key }) => key === String(ban.championId))?.name ||
+          ban.championId ||
+          "[No ban]",
       );
 
       return obj;
@@ -185,19 +186,38 @@ ${
 ${bannedChampions.BLUE.join(", ")}
 Bans R:
 ${bannedChampions.RED.join(", ")}
+
 `
     : ""
 }${
     players
-      ? `Ranks B:
-${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join('\n')}
-Ranks R:
-${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join('\n')}`
+      ? `Ranks Blue:
+${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("\n")}
+
+Ranks Red:
+${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("\n")}`
       : ""
   }`;
 
-	currentGame.chat(`Bans blue team: ${bannedChampions.BLUE.join(", ")}. Bans red team: ${bannedChampions.RED.join(", ")}.`);
+  if (bannedChampions?.BLUE && bannedChampions?.RED) {
+    currentGame.chat(
+      `Bans Blue: ${bannedChampions.BLUE.join(", ")}. Bans Red: ${bannedChampions.RED.join(", ")}.`,
+    );
+  }
 
+  if (players?.BLUE && players?.RED) {
+    setTimeout(() => {
+      currentGame.chat(
+        `Ranks Blue: ${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" | ")}`,
+      );
+
+      setTimeout(() => {
+        currentGame.chat(
+          `Ranks Red: ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" | ")}`,
+        );
+      }, 500);
+    }, 500);
+  }
 
   return changeLobbyInfo(layout);
 };

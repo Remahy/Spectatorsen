@@ -2,7 +2,7 @@ import { exec, execSync } from "child_process";
 import path from "path";
 import { fetch } from "undici";
 import bbDefaultsObject from "../bbdefaultsObject.cjs";
-import { refreshSourceCache } from "./obs";
+import { refreshSourceCache } from "./obs.js";
 
 const { defaultMatch, defaultShowing, defaultTeam1, defaultTeam2 } =
   bbDefaultsObject;
