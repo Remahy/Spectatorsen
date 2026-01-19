@@ -118,6 +118,10 @@ export const setNewPlayerBrowserSource = async (player) => {
  * @param {string} [absolutePath]
  */
 export const playAudioFile = async (absolutePath) => {
+  if (!OBS_IP) {
+    return;
+  }
+
   try {
     let file = absolutePath;
 

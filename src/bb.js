@@ -55,6 +55,10 @@ const changeShowing = (showing) => {
 };
 
 export const showChart = async (chartNames) => {
+  if (!BLUEBOTTLE_ENABLE) {
+    return;
+  }
+
   const showing = {};
 
   for (let index = 0; index < chartNames.length; index += 1) {
