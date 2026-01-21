@@ -284,8 +284,8 @@ export const setTargetPlayer = async (currentGame, gameName) => {
     cameraMode: "fps",
     selectionOffset: {
       x: 0.0,
-      y: 1911.85,
-      z: -1200.0,
+      y: 2389.35009765625,
+      z: -1500.0,
     },
   };
 
