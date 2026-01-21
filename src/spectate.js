@@ -359,7 +359,7 @@ class CurrentGame {
   lastGameId = null;
   isUpdating = false;
   startAutoDirectorTimer = null;
-  keepFocusTimer = null;
+  gameEventTimeout = null;
   lastGameTime = -1;
   isDead = null;
   activeGame = false;
@@ -388,7 +388,7 @@ class CurrentGame {
     this.schedules = structuredClone(bbSchedules);
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
-    this.keepFocusTimer = null;
+    this.gameEventTimeout = null;
     this.teamfightUpdateTimer = null;
     this.lastGameTime = -1;
     this.isDead = null;
@@ -413,7 +413,7 @@ class CurrentGame {
     this.currentPlayer = playerSpectate;
   }
 
-  focusPlayerTimeout() {
+  gameEventTimer() {
     return setTimeout(async () => {
       // Always maintain UI.
       renderDefaultUI();
@@ -429,6 +429,11 @@ class CurrentGame {
         return;
       }
 
+      if (!gameData) {
+        console.log("No gameData in gameEventTimer?", JSON.stringify(data));
+        return;
+      }
+
       if (this.schedules.length && this.schedules[0].time < gameData.gameTime) {
         const schedule = this.schedules.shift();
         console.log("Auto-chart:", schedule.charts.join(", "));
@@ -441,7 +446,7 @@ class CurrentGame {
       );
 
       if (isDead === this.isDead && this.activeGame) {
-        this.keepFocusTimer = this.focusPlayerTimeout();
+        this.gameEventTimeout = this.gameEventTimer();
         return;
       }
 
@@ -459,7 +464,7 @@ class CurrentGame {
       this.isDead = isDead;
 
       if (this.activeGame) {
-        this.keepFocusTimer = this.focusPlayerTimeout();
+        this.gameEventTimeout = this.gameEventTimer();
       }
     }, 500);
   }
@@ -499,7 +504,7 @@ class CurrentGame {
             await setTargetPlayer(this, this.currentPlayer.gameName);
           }, 9000);
 
-          this.keepFocusTimer = this.focusPlayerTimeout();
+          this.gameEventTimeout = this.gameEventTimer();
           // this.teamfightUpdateTimer = this.teamfightUpdate();
         }, 1000);
       }, 10_000);
@@ -572,9 +577,9 @@ class CurrentGame {
             refreshSourceCache();
           }, 5000);
 
-          resetCurrentGame();
-          setPostGame(true);
           console.log("Exiting completed game.");
+          await resetCurrentGame();
+          // setPostGame(true);
         } else {
           this.lastGameTime = gameData?.gameTime
             ? Number(gameData?.gameTime).toFixed(0)
@@ -587,19 +592,6 @@ class CurrentGame {
 
       // Same game as before, then do nothing.
       if (game.gameId === this.lastGameId) {
-        if (this.activeGame) {
-          try {
-            const res = await getCurrentGameData();
-
-            if (!Object.keys(res).length) {
-              throw new Error("Nothing returned.");
-            }
-          } catch (err) {
-            console.log("Could not find current game, resetting.", err);
-            this.reset();
-          }
-        }
-
         return;
       }
 

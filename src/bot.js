@@ -142,7 +142,7 @@ let chat;
       return chat.reply(
         msg.channelName,
         msg.messageID,
-        `🦆 now spectating "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
+        `🦆 waiting for game from "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
       );
     };
 
