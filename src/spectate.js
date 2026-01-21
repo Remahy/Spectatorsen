@@ -200,19 +200,19 @@ ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("
 
   if (bannedChampions?.BLUE && bannedChampions?.RED) {
     currentGame.chat(
-      `Bans Blue: ${bannedChampions.BLUE.join(", ")}. Bans Red: ${bannedChampions.RED.join(", ")}.`,
+      `(Bans Blue) ${bannedChampions.BLUE.join(" / ")}. (Bans Red) ${bannedChampions.RED.join(" / ")}.`,
     );
   }
 
   if (players?.BLUE && players?.RED) {
     setTimeout(() => {
       currentGame.chat(
-        `Ranks Blue: ${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" | ")}`,
+        `(Ranks Blue) ${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
       );
 
       setTimeout(() => {
         currentGame.chat(
-          `Ranks Red: ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" | ")}`,
+          `(Ranks Red) ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
         );
       }, 500);
     }, 500);
@@ -456,28 +456,6 @@ class CurrentGame {
         }, 2500);
       }
 
-      if (this.isDead === null && this.activeGame) {
-        await setTargetAuto(this);
-        console.log("START autofocus.");
-
-        setTimeout(async () => {
-          console.log("START focusing on player.");
-          await setTargetPlayer(this, this.currentPlayer.gameName);
-          this.keepFocusTimer = this.focusPlayerTimeout();
-        }, 10_000);
-
-        this.isDead = isDead;
-
-        for (let index = 0; index < this.schedules.length; index++) {
-          if (this.schedules[index].time < gameData.gameTime) {
-            this.schedules[index] = null;
-          }
-        }
-
-        this.schedules = this.schedules.filter(Boolean);
-        return;
-      }
-
       this.isDead = isDead;
 
       if (this.activeGame) {
@@ -489,22 +467,41 @@ class CurrentGame {
   autoDirector(game) {
     const checkIsLive = () => {
       return setTimeout(async () => {
-        const isInReplay = await checkIsInReplay();
-        if (!isInReplay) {
+        let data = (await checkIsInReplay()) && (await getCurrentGameData());
+
+        if (!data || !data.allPlayers?.length) {
           if (this.activeGame) {
             checkIsLive();
           }
+
           return;
         }
 
-        renderDefaultUI();
+        const { gameData } = data;
 
-        showChart(["runes"]);
+        setTimeout(async () => {
+          // It's fine if we're behind a little.
+          this.schedules = this.schedules.filter(
+            ({ time }) => time > gameData.gameTime,
+          );
 
-        updateLobbyInfo(this, game);
+          renderDefaultUI();
 
-        this.keepFocusTimer = this.focusPlayerTimeout();
-        // this.teamfightUpdateTimer = this.teamfightUpdate();
+          showChart(["runes"]);
+
+          updateLobbyInfo(this, game);
+
+          await setTargetAuto(this);
+          console.log("START autofocus.");
+
+          setTimeout(async () => {
+            console.log("START focusing on player.");
+            await setTargetPlayer(this, this.currentPlayer.gameName);
+          }, 9000);
+
+          this.keepFocusTimer = this.focusPlayerTimeout();
+          // this.teamfightUpdateTimer = this.teamfightUpdate();
+        }, 1000);
       }, 10_000);
     };
 
@@ -590,6 +587,19 @@ class CurrentGame {
 
       // Same game as before, then do nothing.
       if (game.gameId === this.lastGameId) {
+        if (this.activeGame) {
+          try {
+            const res = await getCurrentGameData();
+
+            if (!Object.keys(res).length) {
+              throw new Error("Nothing returned.");
+            }
+          } catch (err) {
+            console.log("Could not find current game, resetting.", err);
+            this.reset();
+          }
+        }
+
         return;
       }
 
