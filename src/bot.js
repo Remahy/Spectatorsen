@@ -186,6 +186,9 @@ let chat;
           } else if (value === "cs") {
             await showChart(["sideInfoCreepscore"]);
             conductorCooldown.chart = Date.now() + 59_000;
+          } else if (value === "damage") {
+            await showChart(["sideInfoDamage"]);
+            conductorCooldown.chart = Date.now() + 59_000;
           } else if (value === "cinema") {
             await showChart(["teamfightNoDamageGraph"]);
             conductorCooldown.chart = Date.now() + 59_000;
@@ -249,7 +252,7 @@ let chat;
       return chat.reply(
         msg.channelName,
         msg.messageID,
-        "🦆 unknown conductor action, supported actions: chart <cinema|gold|exp|cs>, (mod-only) follow <playername>, (mod-only) auto. 30 seconds cooldown.",
+        "🦆 unknown conductor action, supported actions: chart <cinema|gold|exp|cs|damage>, (mod-only) follow <playername>, (mod-only) auto. 30 seconds cooldown.",
       );
     };
 

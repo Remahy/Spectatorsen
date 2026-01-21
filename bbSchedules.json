@@ -21,6 +21,13 @@
 	{
 		"time": 1200,
 		"charts": [
+			"fullGameDamageGraph",
+			"teamfightNoDamageGraph"
+		]
+	},
+	{
+		"time": 1380,
+		"charts": [
 			"sideInfoExp"
 		]
 	},
