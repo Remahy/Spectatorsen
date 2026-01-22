@@ -7,7 +7,7 @@ import {
 
 import { regionKeys, REGIONS } from "./regions.js";
 import game, { Player, setTargetAuto, setTargetPlayer } from "./spectate.js";
-import { setNewPlayerBrowserSource } from "./obs.js";
+import { changeSourceText, setNewPlayerBrowserSource } from "./obs.js";
 import { showChart } from "./bb.js";
 import { getCurrentGame } from "./riot.js";
 // import { TwitchAuth } from "./token.js";
@@ -68,10 +68,10 @@ const startHardcodedIndividualInterval = () => {
       return;
     }
 
-		if (!gameData) {
-			startHardcodedIndividualInterval();
-			return;
-		}
+    if (!gameData) {
+      startHardcodedIndividualInterval();
+      return;
+    }
 
     const region = SPECTATE_REGION.substring(
       0,
@@ -314,7 +314,7 @@ let chat;
    * @param {ChatClient} chat
    * @param {PrivmsgMessage} msg
    */
-  const commandParse = (chat, msg) => {
+  const commandParse = async (chat, msg) => {
     const [rawCommand, region, ...player] = msg.messageText.trim().split(" ");
 
     if (!rawCommand.startsWith("@@")) {
@@ -352,6 +352,14 @@ let chat;
         "🦆 resetting, removing currently spectated player.",
       );
     }
+
+		if (command === "obs") {
+			if (region === "announce") {
+				const text = player.join(" ").replace(/\\n/, '\n');
+
+				await changeSourceText("ANNOUNCEMENT", text);
+			}
+		}
   };
 
   const resetChat = async () => {

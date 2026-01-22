@@ -78,10 +78,10 @@ export const setPostGame = async (visible, timer = 90_000) => {
 
   await refreshSourceCache(OBS_POST_GAME_SOURCE);
 
-  await setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, visible);
+  await setSourceVisibility("Game", OBS_POST_GAME_SOURCE, visible);
 
   setTimeout(() => {
-    setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
+    setSourceVisibility("Game", OBS_POST_GAME_SOURCE, false);
   }, timer);
 };
 
@@ -168,15 +168,33 @@ export const changeLobbyInfo = async (text, hideTimer = 30_000) => {
       },
     });
 
-    await setSourceVisibility("Scene", OBS_LOBBY_SOURCE, true);
+    await setSourceVisibility("Game", OBS_LOBBY_SOURCE, true);
   } catch (err) {
     console.error("Failed to change lobby info OBS", err);
-    setSourceVisibility("Scene", OBS_LOBBY_SOURCE, true);
   }
 
   setTimeout(async () => {
-    await setSourceVisibility("Scene", OBS_LOBBY_SOURCE, false);
+    await setSourceVisibility("Game", OBS_LOBBY_SOURCE, false);
   }, hideTimer);
+};
+
+export const changeSourceText = async (source, text) => {
+  if (!OBS_IP) {
+    return;
+  }
+
+  try {
+    await obs.call("SetInputSettings", {
+      inputName: source,
+      inputSettings: {
+        text,
+      },
+    });
+
+    await setSourceVisibility("Scene", source, true);
+  } catch (err) {
+    console.error("Failed to change source text for", source, "on OBS", err);
+  }
 };
 
 (async () => {

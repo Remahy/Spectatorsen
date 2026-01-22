@@ -205,7 +205,7 @@ class CurrentGame {
     this.isDead = null;
     this.activeGame = false;
     this.customFollow = null;
-    await setSourceVisibility("Scene", OBS_POST_GAME_SOURCE, false);
+    await setSourceVisibility("Game", OBS_POST_GAME_SOURCE, false);
   }
 
   /**
