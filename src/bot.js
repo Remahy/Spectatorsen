@@ -49,19 +49,29 @@ const startHardcodedIndividualInterval = () => {
     return;
   }
 
-  clearInterval(waitForHardcodedIndividual);
+  clearTimeout(waitForHardcodedIndividual);
 
-  waitForHardcodedIndividual = setInterval(async () => {
-    if (game.currentPlayer.puuid === PUUID) {
+  waitForHardcodedIndividual = setTimeout(async () => {
+    const playerData = await Player.find(`${GAME_NAME}#${TAG_LINE}`);
+
+    if (game.currentPlayer?.puuid === playerData.puuid) {
       return;
     }
 
+    let gameData = null;
     try {
-      await getCurrentGame(PUUID, SPECTATE_REGION);
+      const res = await getCurrentGame(playerData.puuid, SPECTATE_REGION);
+      gameData = res?.gameData;
     } catch (err) {
       console.error("Error retrieving from spectator API", err);
+      startHardcodedIndividualInterval();
       return;
     }
+
+		if (!gameData) {
+			startHardcodedIndividualInterval();
+			return;
+		}
 
     const region = SPECTATE_REGION.substring(
       0,
@@ -69,13 +79,14 @@ const startHardcodedIndividualInterval = () => {
     ).toUpperCase();
 
     const player = await spectatePlayer(
-      GAME_NAME,
-      TAG_LINE,
+      playerData.gameName,
+      playerData.tagLine,
       REGIONS[region],
       chat,
     );
 
     startSpectateInterval();
+    startHardcodedIndividualInterval();
 
     return chat.say(
       TWITCH_USERNAME,
