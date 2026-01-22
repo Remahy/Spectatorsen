@@ -1,5 +1,4 @@
 import { exec, execSync } from "child_process";
-import { fetch, Agent } from "undici";
 
 import bbSchedules from "../bbSchedulesObject.cjs";
 import {
@@ -15,167 +14,12 @@ import {
   showChart,
   waitForBB,
 } from "./bb.js";
-import { getChampions } from "./ddragon.js";
 import { downloadReplays } from "./downloadReplays.js";
+import { getCurrentGame, getLobbyData, getPUUID } from "./riot.js";
+import { changeRender, checkIsInReplay, getAllGameData } from "./lol.js";
 
-const agent = new Agent({
-  connect: {
-    rejectUnauthorized: false,
-  },
-});
 
-const { API_KEY, REGION, OBS_POST_GAME_SOURCE } = process.env;
-
-async function getPUUID(gameName, tagLine, region = REGION) {
-  try {
-    const url = `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`;
-
-    const res = await fetch(url, {
-      headers: { "X-Riot-Token": API_KEY },
-    });
-
-    if (!res.ok) {
-      throw new Error("Account not found");
-    }
-
-    return res.json();
-  } catch (err) {
-    console.error("Error retrieving PUUID", err);
-    throw new Error("Account not found");
-  }
-}
-
-async function getCurrentGame(puuid, spectateRegion) {
-  const url = `https://${spectateRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`;
-
-  const res = await fetch(url, {
-    headers: { "X-Riot-Token": API_KEY },
-  });
-
-  if (res.status === 404) {
-    return null;
-  }
-
-  if (!res.ok) {
-    throw new Error("Spectator API error");
-  }
-
-  return res.json();
-}
-
-async function getCurrentGameData() {
-  try {
-    const res = await fetch(
-      "https://127.0.0.1:2999/liveclientdata/allgamedata",
-      {
-        dispatcher: agent,
-        signal: AbortSignal.timeout(5000),
-      },
-    );
-
-    if (!res.ok) {
-      return {};
-    }
-
-    return res.json();
-  } catch (err) {
-    if (err.name === "TimeoutError") {
-      throw err;
-    }
-
-    return {};
-  }
-}
-
-const getLobbyData = async (game) => {
-  const champions = getChampions();
-
-  try {
-    let players = null;
-
-    try {
-      const playersPromisesRes = await Promise.allSettled(
-        (game.participants || []).map(async (p) => {
-          if (!p.puuid) {
-            return null;
-          }
-
-          const res = await fetch(
-            `https://${game.platformId.toLowerCase()}.api.riotgames.com/lol/league/v4/entries/by-puuid/${p.puuid}`,
-            {
-              headers: { "X-Riot-Token": API_KEY },
-            },
-          );
-
-          if (!res.ok) {
-            return null;
-          }
-
-          const entries = await res.json();
-
-          const soloQ =
-            entries.find((e) => e.queueType === "RANKED_SOLO_5x5") || null;
-
-          return {
-            name: p.riotId,
-            champion: champions.find(({ key }) => key === String(p.championId))
-              ?.name,
-            soloQ,
-            teamId: p.teamId,
-          };
-        }),
-      );
-
-      const playersRes = playersPromisesRes
-        .map(({ value }) => value)
-        .filter(Boolean);
-
-      players = playersRes.reduce((obj, participant) => {
-        const teamName = participant.teamId === 100 ? "BLUE" : "RED";
-
-        if (!obj[teamName]) {
-          obj[teamName] = [];
-        }
-
-        obj[teamName].push({
-          champion: participant.champion,
-          rank: participant.soloQ,
-          fullRank: participant.soloQ?.tier
-            ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} ${participant.soloQ?.leaguePoints}LP ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
-            : "UNRANKED",
-        });
-
-        return obj;
-      }, {});
-    } catch (err) {
-      console.error("Failed to get player lobby stats.", err);
-    }
-
-    const bannedChampionsRaw = structuredClone(
-      game.bannedChampions || [],
-    )?.sort((a, b) => a.pickTurn - b.pickTurn);
-
-    const bannedChampions = bannedChampionsRaw.reduce((obj, ban) => {
-      const teamName = ban.teamId === 100 ? "BLUE" : "RED";
-
-      if (!obj[teamName]) {
-        obj[teamName] = [];
-      }
-
-      obj[teamName].push(
-        champions.find(({ key }) => key === String(ban.championId))?.name ||
-          (ban.championId !== -1 ? ban.championId : "[No ban]"),
-      );
-
-      return obj;
-    }, {});
-
-    return { players, bannedChampions };
-  } catch (err) {
-    console.error("Something went wrong getting player statistics.", err);
-    return {};
-  }
-};
+const { OBS_POST_GAME_SOURCE } = process.env;
 
 /**
  * @param {CurrentGame} currentGame
@@ -239,21 +83,6 @@ function parsePlayerData(data = {}, name) {
   );
 
   return player || {};
-}
-
-async function changeRender(renderSettings) {
-  try {
-    const res = await fetch("https://127.0.0.1:2999/replay/render", {
-      dispatcher: agent,
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(renderSettings),
-    });
-
-    return res;
-  } catch (err) {
-    console.error("Something went wrong changing render.");
-  }
 }
 
 function renderDefaultUI() {
@@ -338,29 +167,6 @@ function shutdownSpectator() {
   }
 }
 
-const checkIsInReplay = async () => {
-  try {
-    const isInReplay = await fetch("https://127.0.0.1:2999/replay/game", {
-      dispatcher: agent,
-    });
-
-    if (!isInReplay.ok) {
-      return false;
-    }
-
-    const res = await isInReplay.json();
-
-    if (typeof res.processID === "undefined") {
-      return false;
-    }
-  } catch (err) {
-    console.error("Client not live?");
-    return false;
-  }
-
-  return true;
-};
-
 class CurrentGame {
   lastGameId = null;
   isUpdating = false;
@@ -428,7 +234,7 @@ class CurrentGame {
       let gameData;
 
       try {
-        data = await getCurrentGameData();
+        data = await getAllGameData();
         gameData = data.gameData;
       } catch {
         this.reset();
@@ -478,7 +284,7 @@ class CurrentGame {
   autoDirector(game) {
     const checkIsLive = () => {
       return setTimeout(async () => {
-        let data = (await checkIsInReplay()) && (await getCurrentGameData());
+        let data = (await checkIsInReplay()) && (await getAllGameData());
 
         if (!data || !data.allPlayers?.length) {
           if (this.activeGame) {
@@ -524,7 +330,7 @@ class CurrentGame {
       let gameData;
 
       try {
-        gameData = await getCurrentGameData();
+        gameData = await getAllGameData();
       } catch {
         this.reset();
         return;
@@ -567,7 +373,7 @@ class CurrentGame {
         let gameData;
 
         try {
-          const data = await getCurrentGameData();
+          const data = await getAllGameData();
           gameData = data.gameData;
         } catch {
           // noop
@@ -610,7 +416,7 @@ class CurrentGame {
 
       if (this.activeGame) {
         try {
-          const { gameData } = await getCurrentGameData();
+          const { gameData } = await getAllGameData();
 
           if (
             gameData?.gameTime &&
