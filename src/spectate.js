@@ -18,7 +18,6 @@ import { downloadReplays } from "./downloadReplays.js";
 import { getCurrentGame, getLobbyData, getPUUID } from "./riot.js";
 import { changeRender, checkIsInReplay, getAllGameData } from "./lol.js";
 
-
 const { OBS_POST_GAME_SOURCE } = process.env;
 
 /**
@@ -314,10 +313,9 @@ class CurrentGame {
           setTimeout(async () => {
             console.log("START focusing on player.");
             await setTargetPlayer(this, this.currentPlayer.gameName);
-          }, 9000);
+          }, 10_000);
 
           this.gameEventTimeout = this.gameEventTimer();
-          // this.teamfightUpdateTimer = this.teamfightUpdate();
         }, 1000);
       }, 10_000);
     };
@@ -363,7 +361,7 @@ class CurrentGame {
         this.currentPlayer.region.platform,
       );
     } catch (err) {
-      console.error("Error retrieving spectator API", err);
+      console.error("spectate.js Error retrieving from spectator API", err);
     }
 
     try {
@@ -475,7 +473,9 @@ class CurrentGame {
       refreshSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
-        this.chat("Loading client...");
+        this.chat(
+          `Launching ${this.currentPlayer.gameName}#${this.currentPlayer.tagLine} game...`,
+        );
 
         launchSpectator(game);
         this.activeGame = true;

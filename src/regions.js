@@ -1,4 +1,4 @@
-export const REGIONS = {
+export const REGIONS = /** @type {const} */ ({
   BR: { platform: "br1", regional: "americas" },
   EUNE: { platform: "eun1", regional: "europe" },
   EUW: { platform: "euw1", regional: "europe" },
@@ -15,6 +15,6 @@ export const REGIONS = {
   TR: { platform: "tr1", regional: "europe" },
   TW: { platform: "tw2", regional: "sea" },
   VN: { platform: "vn2", regional: "sea" },
-};
+});
 
 export const regionKeys = Object.keys(REGIONS);

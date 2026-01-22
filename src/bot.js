@@ -9,21 +9,14 @@ import { regionKeys, REGIONS } from "./regions.js";
 import game, { Player, setTargetAuto, setTargetPlayer } from "./spectate.js";
 import { setNewPlayerBrowserSource } from "./obs.js";
 import { showChart } from "./bb.js";
+import { getCurrentGame } from "./riot.js";
 // import { TwitchAuth } from "./token.js";
 // import pkg from "../packageObject.cjs";
 
 // const { name: pgkName, version, repository } = pkg;
 
-let spectateInterval = null;
-const startSpectateInterval = () => {
-  clearInterval(spectateInterval);
-
-  spectateInterval = setInterval(() => {
-    game.update();
-  }, 15_000);
-};
-
 const {
+  PUUID,
   GAME_NAME,
   TAG_LINE,
   SPECTATE_REGION,
@@ -40,6 +33,56 @@ const {
 
   TWITCH_PERMA_ACCESS_TOKEN,
 } = process.env;
+
+let spectateInterval = null;
+const startSpectateInterval = () => {
+  clearInterval(spectateInterval);
+
+  spectateInterval = setInterval(() => {
+    game.update();
+  }, 15_000);
+};
+
+let waitForHardcodedIndividual = null;
+const startHardcodedIndividualInterval = () => {
+  if (!PUUID || !SPECTATE_REGION) {
+    return;
+  }
+
+  clearInterval(waitForHardcodedIndividual);
+
+  waitForHardcodedIndividual = setInterval(async () => {
+    if (game.currentPlayer.puuid === PUUID) {
+      return;
+    }
+
+    try {
+      await getCurrentGame(PUUID, SPECTATE_REGION);
+    } catch (err) {
+      console.error("Error retrieving from spectator API", err);
+      return;
+    }
+
+    const region = SPECTATE_REGION.substring(
+      0,
+      SPECTATE_REGION.length - 1,
+    ).toUpperCase();
+
+    const player = await spectatePlayer(
+      GAME_NAME,
+      TAG_LINE,
+      REGIONS[region],
+      chat,
+    );
+
+    startSpectateInterval();
+
+    return chat.say(
+      TWITCH_USERNAME,
+      `🦆 SWITCHING OFF FROM CURRENTLY SPECTATED PLAYER. Switching to "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
+    );
+  }, 15_000);
+};
 
 /**
  * @param {string} gameName
@@ -329,7 +372,10 @@ let chat;
     chat.use(new SlowModeRateLimiter(chat));
     chat.use(new PrivmsgMessageRateLimiter(chat));
 
-    chat.on("ready", () => console.log("Successfully connected to chat"));
+    chat.on("ready", () => {
+      console.log("Successfully connected to chat");
+      startHardcodedIndividualInterval();
+    });
 
     chat.on("close", (err) => {
       if (err != null) {
