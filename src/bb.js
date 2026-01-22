@@ -15,7 +15,7 @@ const {
   OBS_BLUEBOTTLE_SOURCE,
 } = process.env;
 
-export const resetCurrentGame = async () => {
+export const markCurrentGameCompleted = async () => {
   if (!BLUEBOTTLE_ENABLE) {
     return;
   }

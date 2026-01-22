@@ -1,3 +1,5 @@
 node_modules
 .env
 wwwroot
+replays/**
+!replays/README.md

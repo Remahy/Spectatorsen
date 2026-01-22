@@ -9,8 +9,14 @@ import {
   setSourceVisibility,
   changeLobbyInfo,
 } from "./obs.js";
-import { resetCurrentGame, setBBDefaults, showChart, waitForBB } from "./bb.js";
+import {
+  markCurrentGameCompleted,
+  setBBDefaults,
+  showChart,
+  waitForBB,
+} from "./bb.js";
 import { getChampions } from "./ddragon.js";
+import { downloadReplays } from "./downloadReplays.js";
 
 const agent = new Agent({
   connect: {
@@ -382,7 +388,7 @@ class CurrentGame {
 
   async reset() {
     clearTimeout(this.startAutoDirectorTimer);
-    clearTimeout(this.keepFocusTimer);
+    clearTimeout(this.gameEventTimeout);
     clearTimeout(this.teamfightUpdateTimer);
     shutdownSpectator();
     this.schedules = structuredClone(bbSchedules);
@@ -578,8 +584,15 @@ class CurrentGame {
           }, 5000);
 
           console.log("Exiting completed game.");
-          await resetCurrentGame();
-          // setPostGame(true);
+
+          await markCurrentGameCompleted();
+
+          await downloadReplays(
+            this.currentPlayer.puuid,
+            this.currentPlayer.region.regional,
+          );
+
+          setPostGame(true);
         } else {
           this.lastGameTime = gameData?.gameTime
             ? Number(gameData?.gameTime).toFixed(0)
@@ -604,9 +617,17 @@ class CurrentGame {
             this.lastGameTime === Number(gameData.gameTime).toFixed(0)
           ) {
             this.reset();
+            console.log("Exiting completed game a tad late.");
+
+            await markCurrentGameCompleted();
+
             refreshSourceCache();
             setPostGame(true, 60_000);
-            console.log("Exiting completed game a tad late.");
+
+            await downloadReplays(
+              this.currentPlayer.puuid,
+              this.currentPlayer.region.regional,
+            );
           } else {
             console.log("Found new game, but current game is still ongoing.");
             this.lastGameTime = gameData?.gameTime
