@@ -353,13 +353,13 @@ let chat;
       );
     }
 
-		if (command === "obs") {
-			if (region === "announce") {
-				const text = player.join(" ").replace(/\\n/, '\n');
+    if (command === "obs") {
+      if (region === "announce") {
+        const text = player.join(" ").replace(/\\n/g, "\n");
 
-				await changeSourceText("ANNOUNCEMENT", text);
-			}
-		}
+        await changeSourceText("ANNOUNCEMENT", text);
+      }
+    }
   };
 
   const resetChat = async () => {
