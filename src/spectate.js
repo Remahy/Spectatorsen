@@ -287,7 +287,7 @@ class CurrentGame {
         let data = (await checkIsInReplay()) && (await getAllGameData());
 
         if (!data || !data.allPlayers?.length) {
-          if (times > 6) {
+          if (times > 30) {
             this.reset();
             return;
           }
