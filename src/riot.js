@@ -132,9 +132,9 @@ export const getLobbyData = async (game) => {
 			return obj;
 		}, {});
 
-		return { players, bannedChampions };
+		return { players: players || null, bannedChampions: bannedChampions || null };
 	} catch (err) {
 		console.error("Something went wrong getting player statistics.", err);
-		return {};
+		return null;
 	}
 };

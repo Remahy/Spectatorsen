@@ -24,13 +24,21 @@ const { OBS_POST_GAME_SOURCE } = process.env;
  * @param {CurrentGame} currentGame
  */
 const updateLobbyInfo = async (currentGame, game) => {
-  const { players, bannedChampions } = await getLobbyData(game);
+  const lobbyData = await getLobbyData(game);
 
   const start = `Start: ${new Date(game.gameStartTime).toUTCString()}`;
 
-  if (!players?.length || bannedChampions?.length) {
-    const layout = start;
-    return changeLobbyInfo(layout);
+  if (!lobbyData) {
+    return changeLobbyInfo(start);
+  }
+
+  const { players, bannedChampions } = lobbyData;
+
+  if (
+    !Object.keys(players || {}).length &&
+    !Object.keys(bannedChampions || {}).length
+  ) {
+    return changeLobbyInfo(start);
   }
 
   const layout = `${start}
@@ -65,13 +73,13 @@ ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("
       currentGame.chat(
         `(Ranks Blue) ${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
       );
-
-      setTimeout(() => {
-        currentGame.chat(
-          `(Ranks Red) ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
-        );
-      }, 500);
     }, 500);
+
+    setTimeout(() => {
+      currentGame.chat(
+        `(Ranks Red) ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
+      );
+    }, 1000);
   }
 
   return changeLobbyInfo(layout);
@@ -236,7 +244,9 @@ class CurrentGame {
       // Always maintain UI.
       renderDefaultUI();
 
-      changeRender(this.customFollow || this.currentPlayer.gameName);
+      changeRender({
+        selectionName: this.customFollow || this.currentPlayer.gameName,
+      });
 
       let data;
       let gameData;
