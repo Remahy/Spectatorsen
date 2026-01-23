@@ -16,7 +16,6 @@ import { getCurrentGame } from "./riot.js";
 // const { name: pgkName, version, repository } = pkg;
 
 const {
-  PUUID,
   GAME_NAME,
   TAG_LINE,
   SPECTATE_REGION,
@@ -44,7 +43,7 @@ const startSpectateInterval = () => {
 };
 
 let waitForHardcodedIndividual = null;
-const startHardcodedIndividualInterval = () => {
+const startHardcodedIndividualInterval = (chat) => {
   if (!GAME_NAME || !TAG_LINE || !SPECTATE_REGION) {
     return;
   }
@@ -63,12 +62,12 @@ const startHardcodedIndividualInterval = () => {
       currentGame = await getCurrentGame(playerData.puuid, SPECTATE_REGION);
     } catch (err) {
       console.error("Error retrieving from spectator API", err);
-      startHardcodedIndividualInterval();
+      startHardcodedIndividualInterval(chat);
       return;
     }
 
     if (!currentGame) {
-      startHardcodedIndividualInterval();
+      startHardcodedIndividualInterval(chat);
       return;
     }
 
@@ -85,7 +84,7 @@ const startHardcodedIndividualInterval = () => {
     );
 
     startSpectateInterval();
-    startHardcodedIndividualInterval();
+    startHardcodedIndividualInterval(chat);
 
     return chat.say(
       TWITCH_USERNAME,
@@ -392,7 +391,7 @@ let chat;
 
     chat.on("ready", () => {
       console.log("Successfully connected to chat");
-      startHardcodedIndividualInterval();
+      startHardcodedIndividualInterval(chat);
     });
 
     chat.on("close", (err) => {
