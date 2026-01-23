@@ -236,6 +236,8 @@ class CurrentGame {
       // Always maintain UI.
       renderDefaultUI();
 
+      changeRender(this.customFollow || this.currentPlayer.gameName);
+
       let data;
       let gameData;
 
