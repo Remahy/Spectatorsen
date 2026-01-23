@@ -26,7 +26,14 @@ const { OBS_POST_GAME_SOURCE } = process.env;
 const updateLobbyInfo = async (currentGame, game) => {
   const { players, bannedChampions } = await getLobbyData(game);
 
-  const layout = `Start: ${new Date(game.gameStartTime).toUTCString()}
+  const start = `Start: ${new Date(game.gameStartTime).toUTCString()}`;
+
+  if (!players?.length || bannedChampions?.length) {
+    const layout = start;
+    return changeLobbyInfo(layout);
+  }
+
+  const layout = `${start}
 
 ${
   bannedChampions
