@@ -45,7 +45,7 @@ const startSpectateInterval = () => {
 
 let waitForHardcodedIndividual = null;
 const startHardcodedIndividualInterval = () => {
-  if (!PUUID || !SPECTATE_REGION) {
+  if (!GAME_NAME || !TAG_LINE || !SPECTATE_REGION) {
     return;
   }
 
@@ -58,17 +58,16 @@ const startHardcodedIndividualInterval = () => {
       return;
     }
 
-    let gameData = null;
+    let currentGame = null;
     try {
-      const res = await getCurrentGame(playerData.puuid, SPECTATE_REGION);
-      gameData = res?.gameData;
+      currentGame = await getCurrentGame(playerData.puuid, SPECTATE_REGION);
     } catch (err) {
       console.error("Error retrieving from spectator API", err);
       startHardcodedIndividualInterval();
       return;
     }
 
-    if (!gameData) {
+    if (!currentGame) {
       startHardcodedIndividualInterval();
       return;
     }

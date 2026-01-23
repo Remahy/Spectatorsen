@@ -46,25 +46,25 @@ export const changeRender = async (renderSettings) => {
 };
 
 export const checkIsInReplay = async () => {
-	try {
-		const isInReplay = await fetch("https://127.0.0.1:2999/replay/game", {
-			dispatcher: agent,
-		});
+  try {
+    const isInReplay = await fetch("https://127.0.0.1:2999/replay/game", {
+      dispatcher: agent,
+      signal: AbortSignal.timeout(5000),
+    });
 
-		if (!isInReplay.ok) {
-			return false;
-		}
+    if (!isInReplay.ok) {
+      return false;
+    }
 
-		const res = await isInReplay.json();
+    const res = await isInReplay.json();
 
-		if (typeof res.processID === "undefined") {
-			return false;
-		}
-	} catch (err) {
-		console.error("Client not live?");
-		return false;
-	}
+    if (typeof res.processID === "undefined") {
+      return false;
+    }
+  } catch (err) {
+    console.error("Client not live?");
+    return false;
+  }
 
-	return true;
+  return true;
 };
-
