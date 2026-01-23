@@ -281,12 +281,19 @@ class CurrentGame {
   }
 
   autoDirector(game) {
+    let times = 0;
     const checkIsLive = () => {
       return setTimeout(async () => {
         let data = (await checkIsInReplay()) && (await getAllGameData());
 
         if (!data || !data.allPlayers?.length) {
+          if (times > 6) {
+            this.reset();
+            return;
+          }
+
           if (this.activeGame) {
+            times += 1;
             checkIsLive();
           }
 
