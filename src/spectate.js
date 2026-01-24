@@ -509,13 +509,17 @@ class CurrentGame {
         launchingClientDate.toLocaleTimeString(),
       );
 
-      this.chat(
-        `Game found (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}). ${
-          spectatorTimeout > 0
-            ? ` Waiting ${formatDistance(launchingClientDate, new Date())} before launching client.`
-            : ""
-        }`,
-      );
+      try {
+        this.chat(
+          `Game found (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}). ${
+            spectatorTimeout > 0
+              ? ` Waiting ${formatDistance(launchingClientDate, new Date())} before launching client.`
+              : ""
+          }`,
+        );
+      } catch (err) {
+        console.error("Tried to send a message in chat but failed.", err);
+      }
 
       refreshSourceCache();
 

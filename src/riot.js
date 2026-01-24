@@ -92,19 +92,22 @@ export const getLobbyData = async (game) => {
         .map(({ value }) => value)
         .filter(Boolean);
 
-      players = playersRes.reduce((obj, participant) => {
-        const teamName = participant.teamId === 100 ? "BLUE" : "RED";
+      players = playersRes.reduce(
+        (obj, participant) => {
+          const teamName = participant.teamId === 100 ? "BLUE" : "RED";
 
-        obj[teamName].push({
-          champion: participant.champion,
-          rank: participant.soloQ,
-          fullRank: participant.soloQ?.tier
-            ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} ${participant.soloQ?.leaguePoints}LP ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
-            : "UNRANKED",
-        });
+          obj[teamName].push({
+            champion: participant.champion,
+            rank: participant.soloQ,
+            fullRank: participant.soloQ?.tier
+              ? `${participant.soloQ?.tier} ${participant.soloQ?.rank} ${participant.soloQ?.leaguePoints}LP ${participant.soloQ?.wins}W-${participant.soloQ?.losses}L`
+              : "UNRANKED",
+          });
 
-        return obj;
-      }, { BLUE: [], RED: [] });
+          return obj;
+        },
+        { BLUE: [], RED: [] },
+      );
     } catch (err) {
       console.error("Failed to get player lobby stats.", err);
     }
@@ -113,20 +116,19 @@ export const getLobbyData = async (game) => {
       game.bannedChampions || [],
     )?.sort((a, b) => a.pickTurn - b.pickTurn);
 
-    const bannedChampions = bannedChampionsRaw.reduce((obj, ban) => {
-      const teamName = ban.teamId === 100 ? "BLUE" : "RED";
+    const bannedChampions = bannedChampionsRaw.reduce(
+      (obj, ban) => {
+        const teamName = ban.teamId === 100 ? "BLUE" : "RED";
 
-      if (!obj[teamName]) {
-        obj[teamName] = [];
-      }
+        obj[teamName].push(
+          champions.find(({ key }) => key === String(ban.championId))?.name ||
+            (ban.championId !== -1 ? ban.championId : "[No ban]"),
+        );
 
-      obj[teamName].push(
-        champions.find(({ key }) => key === String(ban.championId))?.name ||
-          (ban.championId !== -1 ? ban.championId : "[No ban]"),
-      );
-
-      return obj;
-    }, {});
+        return obj;
+      },
+      { BLUE: [], RED: [] },
+    );
 
     return {
       players: players || null,
