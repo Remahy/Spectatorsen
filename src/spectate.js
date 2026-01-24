@@ -110,7 +110,10 @@ function parsePlayerData(data = {}, name) {
   return player || {};
 }
 
-function renderDefaultUI() {
+/**
+ * @param {CurrentGame} game
+ */
+function renderDefaultUI(game) {
   const uiSettings = {
     interfaceAll: true,
     interfaceAnnounce: true,
@@ -125,6 +128,7 @@ function renderDefaultUI() {
     interfaceScoreboard: false,
     interfaceTarget: true,
     interfaceTimeline: false,
+    selectionName: game.customFollow || game.currentPlayer?.gameName,
   };
 
   return changeRender(uiSettings);
@@ -246,7 +250,7 @@ class CurrentGame {
     const deadTimerFn = () =>
       setTimeout(async () => {
         // Always maintain UI.
-        renderDefaultUI();
+        renderDefaultUI(this);
 
         let data;
         let gameData;
@@ -313,7 +317,7 @@ class CurrentGame {
         }
 
         selectionTimer = null;
-      }, 100);
+      }, 50);
 
     const interval = setInterval(() => {
       if (this.activeGame) {
@@ -362,7 +366,7 @@ class CurrentGame {
             ({ time }) => time > gameData.gameTime,
           );
 
-          renderDefaultUI();
+          renderDefaultUI(this);
 
           showChart(["runes"]);
 
