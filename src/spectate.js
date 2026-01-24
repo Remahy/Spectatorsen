@@ -442,7 +442,7 @@ class CurrentGame {
           await downloadReplays(
             this.currentPlayer.puuid,
             this.currentPlayer.gameName,
-            gameData?.gameStartTime,
+            game?.gameStartTime,
             this.currentPlayer.region.regional,
           );
 
@@ -481,7 +481,7 @@ class CurrentGame {
             await downloadReplays(
               this.currentPlayer.puuid,
               this.currentPlayer.gameName,
-              gameData?.gameStartTime,
+              game?.gameStartTime,
               this.currentPlayer.region.regional,
             );
           } else {
