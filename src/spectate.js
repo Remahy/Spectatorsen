@@ -1,4 +1,5 @@
 import { exec, execSync } from "child_process";
+import { formatDistance } from "date-fns";
 
 import bbSchedules from "../bbSchedulesObject.cjs";
 import {
@@ -499,20 +500,19 @@ class CurrentGame {
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
-        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart;
+        msSinceStart > 205_000 ? 0 : 200_000 - msSinceStart + 5_000;
+
+      const launchingClientDate = new Date(Date.now() + spectatorTimeout);
 
       console.log(
-        "Waiting",
-        spectatorTimeout > 0 ? spectatorTimeout / 1000 : 0,
-        "seconds before launching client.",
+        "Launching client at",
+        launchingClientDate.toLocaleTimeString(),
       );
 
       this.chat(
-        `Game found. ${
+        `Game found (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}). ${
           spectatorTimeout > 0
-            ? ` Waiting ${Math.ceil(
-                spectatorTimeout / 1000,
-              )} seconds before launching client.`
+            ? ` Waiting ${formatDistance(launchingClientDate, new Date())} before launching client.`
             : ""
         }`,
       );
