@@ -185,7 +185,7 @@ class CurrentGame {
   lastGameId = null;
   isUpdating = false;
   startAutoDirectorTimer = null;
-  gameEventTimeout = null;
+  gameEventTimeouts = null;
   lastGameTime = -1;
   isDead = null;
   activeGame = false;
@@ -208,13 +208,13 @@ class CurrentGame {
 
   async reset() {
     clearTimeout(this.startAutoDirectorTimer);
-    clearTimeout(this.gameEventTimeout);
-    clearTimeout(this.teamfightUpdateTimer);
+    clearInterval(this.gameEventTimersInterval);
+
     shutdownSpectator();
     this.schedules = structuredClone(bbSchedules);
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
-    this.gameEventTimeout = null;
+    this.gameEventTimeouts = null;
     this.teamfightUpdateTimer = null;
     this.lastGameTime = -1;
     this.isDead = null;
@@ -239,68 +239,103 @@ class CurrentGame {
     this.currentPlayer = playerSpectate;
   }
 
-  gameEventTimer() {
-    return setTimeout(async () => {
-      // Always maintain UI.
-      renderDefaultUI();
+  gameEventTimersInterval() {
+    let deadTimer = null;
+    let selectionTimer = null;
 
-      changeRender({
-        selectionName: this.customFollow || this.currentPlayer.gameName,
-      });
+    const deadTimerFn = () =>
+      setTimeout(async () => {
+        // Always maintain UI.
+        renderDefaultUI();
 
-      let data;
-      let gameData;
+        let data;
+        let gameData;
 
-      try {
-        data = await getAllGameData();
-        gameData = data.gameData;
-      } catch {
-        this.reset();
-        return;
-      }
+        try {
+          data = await getAllGameData();
+          gameData = data.gameData;
+        } catch {
+          this.reset();
+          deadTimer = null;
+          return;
+        }
 
-      if (!gameData) {
-        console.log("No gameData in gameEventTimer?", JSON.stringify(data));
-        return;
-      }
+        if (!gameData) {
+          console.log(
+            "No gameData in gameEventTimers[0]?",
+            JSON.stringify(data),
+          );
+          deadTimer = null;
+          return;
+        }
 
-      if (this.schedules.length && this.schedules[0].time < gameData.gameTime) {
-        const schedule = this.schedules.shift();
-        console.log("Auto-chart:", schedule.charts.join(", "));
-        showChart(schedule.charts);
-      }
+        if (
+          this.schedules.length &&
+          this.schedules[0].time < gameData.gameTime
+        ) {
+          const schedule = this.schedules.shift();
+          console.log("Auto-chart:", schedule.charts.join(", "));
+          showChart(schedule.charts);
+        }
 
-      const { isDead = false } = parsePlayerData(
-        data,
-        this.customFollow || this.currentPlayer.gameName,
-      );
+        const { isDead = false } = parsePlayerData(
+          data,
+          this.customFollow || this.currentPlayer.gameName,
+        );
 
-      if (isDead === this.isDead && this.activeGame) {
-        this.gameEventTimeout = this.gameEventTimer();
-        return;
-      }
+        if (isDead === this.isDead && this.activeGame) {
+          deadTimer = null;
+          return;
+        }
 
-      if (!isDead) {
-        await setTargetPlayer(this, this.currentPlayer.gameName);
-        console.log("Focusing on player.");
-      } else {
-        playAudioFile();
-        setTimeout(() => {
-          setTargetAuto(this);
-          console.log("Autofocus.");
-        }, 2500);
-      }
+        if (!isDead) {
+          await setTargetPlayer(this, this.currentPlayer.gameName);
+          console.log("Focusing on player.");
+        } else {
+          playAudioFile();
+          setTimeout(() => {
+            setTargetAuto(this);
+            console.log("Autofocus.");
+          }, 2500);
+        }
 
-      this.isDead = isDead;
+        this.isDead = isDead;
 
+        deadTimer = null;
+      }, 500);
+
+    const selectionTimerFn = () =>
+      setTimeout(() => {
+        if (this.activeGame) {
+          changeRender({
+            selectionName: this.customFollow || this.currentPlayer.gameName,
+          });
+        }
+
+        selectionTimer = null;
+      }, 250);
+
+    const interval = setInterval(() => {
       if (this.activeGame) {
-        this.gameEventTimeout = this.gameEventTimer();
+        if (deadTimer === null) {
+          deadTimer = deadTimerFn();
+        }
+
+        if (selectionTimer === null) {
+          selectionTimer = selectionTimerFn();
+        }
+      } else if (selectionTimer === null && deadTimer === null) {
+        console.log("Clearing interval.");
+        clearInterval(interval);
       }
-    }, 500);
+    }, 10);
+
+    return interval;
   }
 
   autoDirector(game) {
     let times = 0;
+
     const checkIsLive = () => {
       return setTimeout(async () => {
         let data = (await checkIsInReplay()) && (await getAllGameData());
@@ -341,29 +376,12 @@ class CurrentGame {
             await setTargetPlayer(this, this.currentPlayer.gameName);
           }, 10_000);
 
-          this.gameEventTimeout = this.gameEventTimer();
+          this.gameEventTimeouts = this.gameEventTimersInterval();
         }, 1000);
       }, 10_000);
     };
 
     checkIsLive();
-  }
-
-  teamfightUpdate() {
-    return setTimeout(async () => {
-      let gameData;
-
-      try {
-        gameData = await getAllGameData();
-      } catch {
-        this.reset();
-        return;
-      }
-
-      if (this.activeGame) {
-        this.teamfightUpdateTimer = this.teamfightUpdate();
-      }
-    }, 75);
   }
 
   async update() {
@@ -419,6 +437,8 @@ class CurrentGame {
 
           await downloadReplays(
             this.currentPlayer.puuid,
+            this.currentPlayer.gameName,
+            gameData?.gameTime,
             this.currentPlayer.region.regional,
           );
 
@@ -510,7 +530,6 @@ class CurrentGame {
       }, spectatorTimeout);
     } catch (err) {
       console.error("Watcher error:", err);
-      console.error(err);
     } finally {
       this.isUpdating = false;
     }
