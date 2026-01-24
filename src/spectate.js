@@ -24,24 +24,51 @@ const { OBS_POST_GAME_SOURCE } = process.env;
  * @param {CurrentGame} currentGame
  */
 const updateLobbyInfo = async (currentGame, game) => {
-  const lobbyData = await getLobbyData(game);
+  try {
+    const lobbyData = await getLobbyData(game);
 
-  const start = `Start: ${new Date(game.gameStartTime).toUTCString()}`;
+    const start = `Start: ${new Date(game.gameStartTime).toUTCString()}`;
 
-  if (!lobbyData) {
-    return changeLobbyInfo(start);
-  }
+    if (!lobbyData) {
+      return changeLobbyInfo(start);
+    }
 
-  const { players, bannedChampions } = lobbyData;
+    const { players, bannedChampions } = lobbyData;
 
-  if (
-    !Object.keys(players || {}).length &&
-    !Object.keys(bannedChampions || {}).length
-  ) {
-    return changeLobbyInfo(start);
-  }
+    if (
+      !Object.keys(players || {}).length &&
+      !Object.keys(bannedChampions || {}).length
+    ) {
+      return changeLobbyInfo(start);
+    }
 
-  const layout = `${start}
+    if (bannedChampions?.BLUE?.length) {
+      currentGame.chat(`(Bans Blue) ${bannedChampions.BLUE.join(" / ")}.`);
+    }
+
+    if (bannedChampions?.RED?.length) {
+      setTimeout(() => {
+        currentGame.chat(`(Bans Red) ${bannedChampions.RED.join(" / ")}.`);
+      }, 500);
+    }
+
+    if (players?.BLUE?.length) {
+      setTimeout(() => {
+        currentGame.chat(
+          `(Ranks Blue) ${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
+        );
+      }, 1000);
+    }
+
+    if (players?.RED?.length) {
+      setTimeout(() => {
+        currentGame.chat(
+          `(Ranks Red) ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
+        );
+      }, 1500);
+    }
+
+    const layout = `${start}
 
 ${
   bannedChampions
@@ -53,36 +80,19 @@ ${bannedChampions.RED.join(", ")}
 `
     : ""
 }${
-    players
-      ? `Ranks Blue:
-${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("\n")}
+      players
+        ? `Ranks Blue:
+${players.BLUE?.length ? players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("\n") : "Streamer mode on everyone?"}
 
 Ranks Red:
-${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("\n")}`
-      : ""
-  }`;
+${players.RED?.length ? players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join("\n") : "Streamer mode on everyone?"}`
+        : ""
+    }`;
 
-  if (bannedChampions?.BLUE && bannedChampions?.RED) {
-    currentGame.chat(
-      `(Bans Blue) ${bannedChampions.BLUE.join(" / ")}. (Bans Red) ${bannedChampions.RED.join(" / ")}.`,
-    );
+    return changeLobbyInfo(layout);
+  } catch (err) {
+    console.error("Could not display lobby info.", err);
   }
-
-  if (players?.BLUE && players?.RED) {
-    setTimeout(() => {
-      currentGame.chat(
-        `(Ranks Blue) ${players.BLUE.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
-      );
-    }, 500);
-
-    setTimeout(() => {
-      currentGame.chat(
-        `(Ranks Red) ${players.RED.map(({ champion, fullRank }) => `${champion}: ${fullRank}`).join(" / ")}`,
-      );
-    }, 1000);
-  }
-
-  return changeLobbyInfo(layout);
 };
 
 function parsePlayerData(data = {}, name) {
@@ -123,12 +133,8 @@ function renderDefaultUI() {
  * @param {CurrentGame} currentGame
  */
 export const setTargetPlayer = async (currentGame, gameName) => {
-  if (!currentGame.activeGame) {
-    return;
-  }
-
   const targetPlayer = {
-    selectionName: currentGame.customFollow || gameName,
+    selectionName: currentGame?.customFollow || gameName,
     cameraAttached: true,
     cameraMode: "fps",
     selectionOffset: {
@@ -141,14 +147,7 @@ export const setTargetPlayer = async (currentGame, gameName) => {
   return changeRender(targetPlayer);
 };
 
-/**
- * @param {CurrentGame} currentGame
- */
-export const setTargetAuto = async (currentGame) => {
-  if (!currentGame.activeGame) {
-    return;
-  }
-
+export const setTargetAuto = async () => {
   const targetAuto = {
     cameraMode: "top",
   };
@@ -294,7 +293,7 @@ class CurrentGame {
         } else {
           playAudioFile();
           setTimeout(() => {
-            setTargetAuto(this);
+            setTargetAuto();
             console.log("Autofocus.");
           }, 2500);
         }
@@ -313,7 +312,7 @@ class CurrentGame {
         }
 
         selectionTimer = null;
-      }, 250);
+      }, 100);
 
     const interval = setInterval(() => {
       if (this.activeGame) {
@@ -368,7 +367,7 @@ class CurrentGame {
 
           updateLobbyInfo(this, game);
 
-          await setTargetAuto(this);
+          await setTargetAuto();
           console.log("START autofocus.");
 
           setTimeout(async () => {
@@ -438,7 +437,7 @@ class CurrentGame {
           await downloadReplays(
             this.currentPlayer.puuid,
             this.currentPlayer.gameName,
-            gameData?.gameTime,
+            gameData?.gameStartTime,
             this.currentPlayer.region.regional,
           );
 
@@ -476,6 +475,8 @@ class CurrentGame {
 
             await downloadReplays(
               this.currentPlayer.puuid,
+              this.currentPlayer.gameName,
+              gameData?.gameStartTime,
               this.currentPlayer.region.regional,
             );
           } else {
@@ -546,7 +547,6 @@ export class Player {
   puuid = "";
 
   /**
-   *
    * @param {{ platform: string, regional: string }} region
    * @param {string} gameName
    * @param {string} tagLine

@@ -1,10 +1,6 @@
 import fs from "fs/promises";
-import path from "path";
-import { pipeline } from "stream";
-import { promisify } from "util";
+import { createWriteStream } from "fs";
 import { fetch } from "undici";
-
-const streamPipeline = promisify(pipeline);
 
 const { API_KEY, REGION } = process.env;
 
@@ -20,11 +16,39 @@ const getExistingFiles = async () => {
   );
 };
 
+// https://stackoverflow.com/a/73338676
+function getFileWritableStream(filePath) {
+  const downloadWriteStream = createWriteStream(filePath);
+
+  /* This adapter is needed because the method .pipeTo() only
+  accepts an instance of WritableStream.
+  */
+  return new WritableStream({
+    write: (chunk) => downloadWriteStream(chunk),
+  });
+}
+
+async function downloadFile(url, filepath) {
+  const response = await fetch(url);
+  const body = response.body;
+  const fileWritableStream = getFileWritableStream(
+    `${REPLAYS_DIR}/${filepath}`,
+  );
+  await body.pipeTo(fileWritableStream);
+}
+
 /**
  * @param {string} puuid
+ * @param {string} gameName
+ * @param {number} gameStartTime
  * @param {string} region
  */
-export const downloadReplays = async (puuid, region = REGION) => {
+export const downloadReplays = async (
+  puuid,
+  gameName,
+  gameStartTime,
+  region = REGION,
+) => {
   const downloadedReplays = await getExistingFiles();
 
   try {
@@ -45,8 +69,7 @@ export const downloadReplays = async (puuid, region = REGION) => {
 
     const filesToCheckFor = replayLinks.matchFileURLs.map((fileURL) => ({
       url: fileURL,
-      fileName:
-        new URL(fileURL).pathname.split("/").pop().split(".").shift() + ".rofl",
+      fileName: `${new Date(gameStartTime).toUTCString()}_${gameName}_${new URL(fileURL).pathname.split("/").pop().split(".").shift()}.rofl`,
     }));
 
     const filesToDownload = filesToCheckFor.filter(
@@ -54,17 +77,7 @@ export const downloadReplays = async (puuid, region = REGION) => {
     );
 
     await Promise.allSettled(
-      filesToDownload.map(async ({ fileName, url }) => {
-        const response = await fetch(url);
-
-        if (!response.ok) {
-          return console.error("Skipping file", url);
-        }
-
-        const destination = path.join(REPLAYS_DIR, fileName);
-
-        return streamPipeline(response.body, fs.createWriteStream(destination));
-      }),
+      filesToDownload.map(({ fileName, url }) => downloadFile(url, fileName)),
     );
   } catch (err) {
     console.error("Error retrieving replays", err);

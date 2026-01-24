@@ -39,7 +39,7 @@ const startSpectateInterval = () => {
 
   spectateInterval = setInterval(() => {
     game.update();
-  }, 15_000);
+  }, 12_000);
 };
 
 let waitForHardcodedIndividual = null;
@@ -114,7 +114,12 @@ const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
   setNewPlayerBrowserSource(player);
 
   if (chat) {
-    const sendMessageFn = (msg) => chat.say(TWITCH_USERNAME, msg);
+    const sendMessageFn = (msg) =>
+      chat
+        .say(TWITCH_USERNAME, msg)
+        .catch((err) =>
+          console.error("Failed to deliver message:", msg, "Error:", err),
+        );
     game.setChat(sendMessageFn);
   }
 
@@ -397,6 +402,12 @@ let chat;
     chat.on("close", (err) => {
       if (err != null) {
         console.error("Client closed due to error", err);
+      }
+    });
+
+    chat.on("error", (err) => {
+      if (err != null) {
+        console.error("Error", err);
       }
     });
 

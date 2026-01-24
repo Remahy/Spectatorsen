@@ -22,7 +22,8 @@ const getLatestVersion = async () => {
     const versions = await res.json();
 
     return versions.shift();
-  } catch (error) {
+  } catch (err) {
+    console.error("Could not fetch latest ddragon version.", err);
     return null;
   }
 };
