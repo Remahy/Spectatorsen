@@ -190,14 +190,14 @@ function shutdownSpectator() {
   }
 }
 
-const doAFunny = async (game) => {
+const doAFunny = async (game, timeout = 30_000) => {
   return new Promise((resolve) => {
     launchSpectator(game);
 
     setTimeout(() => {
       shutdownSpectator();
       resolve(true);
-    }, 30_000);
+    }, timeout);
   });
 };
 
@@ -376,6 +376,8 @@ class CurrentGame {
 
         const { gameData } = data;
 
+        await resetPlayback();
+
         setTimeout(async () => {
           // It's fine if we're behind a little.
           this.schedules = this.schedules.filter(
@@ -390,8 +392,6 @@ class CurrentGame {
 
           await setTargetAuto();
           console.log("START autofocus.");
-
-          await resetPlayback();
 
           setTimeout(async () => {
             console.log("START focusing on player.");
@@ -543,7 +543,7 @@ class CurrentGame {
 
       refreshSourceCache();
 
-      await doAFunny(game);
+      await doAFunny(game, spectatorTimeout >= 30_000 ? 30_000 : 15_000);
 
       this.startAutoDirectorTimer = setTimeout(async () => {
         this.chat(
