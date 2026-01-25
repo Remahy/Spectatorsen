@@ -134,6 +134,7 @@ const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
     return player;
   } catch (err) {
     chat.say(TWITCH_USERNAME, "🦆 could not spectate that player.");
+    return null;
   }
 };
 
@@ -204,6 +205,10 @@ let chat;
         matchesRegion,
         chat,
       );
+
+      if (!player) {
+        return;
+      }
 
       startSpectateInterval();
 
