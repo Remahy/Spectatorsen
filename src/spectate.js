@@ -17,12 +17,7 @@ import {
 } from "./bb.js";
 import { downloadReplays } from "./downloadReplays.js";
 import { getCurrentGame, getLobbyData, getPUUID } from "./riot.js";
-import {
-  changeRender,
-  checkIsInReplay,
-  getAllGameData,
-  resetPlayback,
-} from "./lol.js";
+import { changeRender, checkIsInReplay, getAllGameData } from "./lol.js";
 
 const { OBS_POST_GAME_SOURCE } = process.env;
 
@@ -376,8 +371,6 @@ class CurrentGame {
 
         const { gameData } = data;
 
-        await resetPlayback();
-
         setTimeout(async () => {
           // It's fine if we're behind a little.
           this.schedules = this.schedules.filter(
@@ -399,7 +392,7 @@ class CurrentGame {
           }, 10_000);
 
           this.gameEventTimeouts = this.gameEventTimersInterval();
-        }, 1000);
+        }, 5000);
       }, 10_000);
     };
 

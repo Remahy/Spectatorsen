@@ -69,6 +69,7 @@ export const checkIsInReplay = async () => {
   return true;
 };
 
+/*
 export const resetPlayback = async () => {
   try {
     const res = await fetch("https://127.0.0.1:2999/replay/playback", {
@@ -85,3 +86,4 @@ export const resetPlayback = async () => {
     console.error("Something went wrong resetting playback.");
   }
 };
+*/
