@@ -197,7 +197,7 @@ const doAFunny = async (game) => {
     setTimeout(() => {
       shutdownSpectator();
       resolve(true);
-    }, 10_000);
+    }, 30_000);
   });
 };
 
@@ -382,8 +382,6 @@ class CurrentGame {
             ({ time }) => time > gameData.gameTime,
           );
 
-          await resetPlayback();
-
           renderDefaultUI(this);
 
           showChart(["runes"]);
@@ -392,6 +390,8 @@ class CurrentGame {
 
           await setTargetAuto();
           console.log("START autofocus.");
+
+          await resetPlayback();
 
           setTimeout(async () => {
             console.log("START focusing on player.");
@@ -460,7 +460,6 @@ class CurrentGame {
           await downloadReplays(
             this.currentPlayer.puuid,
             this.currentPlayer.gameName,
-            game?.gameStartTime,
             this.currentPlayer.region.regional,
           );
 
@@ -499,7 +498,6 @@ class CurrentGame {
             await downloadReplays(
               this.currentPlayer.puuid,
               this.currentPlayer.gameName,
-              game?.gameStartTime,
               this.currentPlayer.region.regional,
             );
           } else {

@@ -76,7 +76,7 @@ export const resetPlayback = async () => {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        gameTime: 0,
+        time: 0,
       }),
     });
 

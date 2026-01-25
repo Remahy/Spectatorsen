@@ -40,13 +40,11 @@ async function downloadFile(url, filepath) {
 /**
  * @param {string} puuid
  * @param {string} gameName
- * @param {number} gameStartTime
  * @param {string} region
  */
 export const downloadReplays = async (
   puuid,
   gameName,
-  gameStartTime,
   region = REGION,
 ) => {
   const downloadedReplays = await getExistingFiles();
@@ -69,7 +67,7 @@ export const downloadReplays = async (
 
     const filesToCheckFor = replayLinks.matchFileURLs.map((fileURL) => ({
       url: fileURL,
-      fileName: `${new Date(gameStartTime).toUTCString()}_${gameName}_${new URL(fileURL).pathname.split("/").pop().split(".").shift()}.rofl`,
+      fileName: `${new Date().toUTCString()}_${gameName}_${new URL(fileURL).pathname.split("/").pop().split(".").shift()}.rofl`,
     }));
 
     const filesToDownload = filesToCheckFor.filter(
