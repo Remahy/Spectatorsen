@@ -68,3 +68,20 @@ export const checkIsInReplay = async () => {
 
   return true;
 };
+
+export const resetPlayback = async () => {
+  try {
+    const res = await fetch("https://127.0.0.1:2999/replay/playback", {
+      dispatcher: agent,
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        gameTime: 0,
+      }),
+    });
+
+    return res;
+  } catch (err) {
+    console.error("Something went wrong resetting playback.");
+  }
+};

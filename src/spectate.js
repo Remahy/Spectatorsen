@@ -17,7 +17,12 @@ import {
 } from "./bb.js";
 import { downloadReplays } from "./downloadReplays.js";
 import { getCurrentGame, getLobbyData, getPUUID } from "./riot.js";
-import { changeRender, checkIsInReplay, getAllGameData } from "./lol.js";
+import {
+  changeRender,
+  checkIsInReplay,
+  getAllGameData,
+  resetPlayback,
+} from "./lol.js";
 
 const { OBS_POST_GAME_SOURCE } = process.env;
 
@@ -188,10 +193,11 @@ function shutdownSpectator() {
 const doAFunny = async (game) => {
   return new Promise((resolve) => {
     launchSpectator(game);
+
     setTimeout(() => {
       shutdownSpectator();
       resolve(true);
-    }, 1000);
+    }, 10_000);
   });
 };
 
@@ -375,6 +381,8 @@ class CurrentGame {
           this.schedules = this.schedules.filter(
             ({ time }) => time > gameData.gameTime,
           );
+
+          await resetPlayback();
 
           renderDefaultUI(this);
 
