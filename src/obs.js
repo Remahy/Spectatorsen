@@ -76,6 +76,8 @@ export const setPostGame = async (visible, timer = 90_000) => {
     return;
   }
 
+	return;
+
   await refreshSourceCache(OBS_POST_GAME_SOURCE);
 
   await setSourceVisibility("Game", OBS_POST_GAME_SOURCE, visible);

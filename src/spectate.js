@@ -185,6 +185,16 @@ function shutdownSpectator() {
   }
 }
 
+const doAFunny = async (game) => {
+  return new Promise((resolve) => {
+    launchSpectator(game);
+    setTimeout(() => {
+      shutdownSpectator();
+      resolve(true);
+    }, 1000);
+  });
+};
+
 class CurrentGame {
   lastGameId = null;
   isUpdating = false;
@@ -526,6 +536,8 @@ class CurrentGame {
       }
 
       refreshSourceCache();
+
+      await doAFunny();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
         this.chat(

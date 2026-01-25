@@ -51,45 +51,52 @@ const startHardcodedIndividualInterval = (chat) => {
   clearTimeout(waitForHardcodedIndividual);
 
   waitForHardcodedIndividual = setTimeout(async () => {
-    const playerData = await Player.find(`${GAME_NAME}#${TAG_LINE}`);
-
-    if (game.currentPlayer?.puuid === playerData.puuid) {
-      return;
-    }
-
-    let currentGame = null;
     try {
-      currentGame = await getCurrentGame(playerData.puuid, SPECTATE_REGION);
+      const playerData = await Player.find(`${GAME_NAME}#${TAG_LINE}`);
+
+      if (game.currentPlayer?.puuid === playerData.puuid) {
+        return;
+      }
+
+      let currentGame = null;
+      try {
+        currentGame = await getCurrentGame(playerData.puuid, SPECTATE_REGION);
+      } catch (err) {
+        console.error("Error retrieving from spectator API", err);
+        startHardcodedIndividualInterval(chat);
+        return;
+      }
+
+      if (!currentGame) {
+        startHardcodedIndividualInterval(chat);
+        return;
+      }
+
+      const region = SPECTATE_REGION.substring(
+        0,
+        SPECTATE_REGION.length - 1,
+      ).toUpperCase();
+
+      const player = await spectatePlayer(
+        playerData.gameName,
+        playerData.tagLine,
+        REGIONS[region],
+        chat,
+      );
+
+      startSpectateInterval();
+      startHardcodedIndividualInterval(chat);
+
+      return chat.say(
+        TWITCH_USERNAME,
+        `🦆 SWITCHING OFF FROM CURRENTLY SPECTATED PLAYER. Switching to "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
+      );
     } catch (err) {
-      console.error("Error retrieving from spectator API", err);
-      startHardcodedIndividualInterval(chat);
-      return;
+      console.error(
+        "Errored when figuring out if hardcoded individual is playing.",
+        err,
+      );
     }
-
-    if (!currentGame) {
-      startHardcodedIndividualInterval(chat);
-      return;
-    }
-
-    const region = SPECTATE_REGION.substring(
-      0,
-      SPECTATE_REGION.length - 1,
-    ).toUpperCase();
-
-    const player = await spectatePlayer(
-      playerData.gameName,
-      playerData.tagLine,
-      REGIONS[region],
-      chat,
-    );
-
-    startSpectateInterval();
-    startHardcodedIndividualInterval(chat);
-
-    return chat.say(
-      TWITCH_USERNAME,
-      `🦆 SWITCHING OFF FROM CURRENTLY SPECTATED PLAYER. Switching to "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
-    );
   }, 15_000);
 };
 
@@ -100,30 +107,34 @@ const startHardcodedIndividualInterval = (chat) => {
  * @param {ChatClient} chat
  */
 const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
-  const playerData = await Player.find(`${gameName}#${tagLine}`);
+  try {
+    const playerData = await Player.find(`${gameName}#${tagLine}`);
 
-  const player = new Player(
-    region,
-    playerData.gameName,
-    playerData.tagLine,
-    playerData.puuid,
-  );
+    const player = new Player(
+      region,
+      playerData.gameName,
+      playerData.tagLine,
+      playerData.puuid,
+    );
 
-  game.setPlayer(player);
+    game.setPlayer(player);
 
-  setNewPlayerBrowserSource(player);
+    setNewPlayerBrowserSource(player);
 
-  if (chat) {
-    const sendMessageFn = (msg) =>
-      chat
-        .say(TWITCH_USERNAME, msg)
-        .catch((err) =>
-          console.error("Failed to deliver message:", msg, "Error:", err),
-        );
-    game.setChat(sendMessageFn);
+    if (chat) {
+      const sendMessageFn = (msg) =>
+        chat
+          .say(TWITCH_USERNAME, msg)
+          .catch((err) =>
+            console.error("Failed to deliver message:", msg, "Error:", err),
+          );
+      game.setChat(sendMessageFn);
+    }
+
+    return player;
+  } catch (err) {
+    chat.say(TWITCH_USERNAME, "🦆 could not spectate that player.");
   }
-
-  return player;
 };
 
 /**
