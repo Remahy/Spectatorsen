@@ -537,7 +537,7 @@ class CurrentGame {
 
       refreshSourceCache();
 
-      await doAFunny();
+      await doAFunny(game);
 
       this.startAutoDirectorTimer = setTimeout(async () => {
         this.chat(
