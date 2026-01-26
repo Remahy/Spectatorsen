@@ -505,6 +505,9 @@ class CurrentGame {
         }
       }
 
+      clearTimeout(this.startAutoDirectorTimer);
+      this.startAutoDirectorTimer = null;
+
       this.lastGameId = game.gameId;
       console.log(`New game detected: ${game.gameId}`);
 
