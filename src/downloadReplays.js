@@ -1,6 +1,8 @@
-import fs from "fs/promises";
+import { readdir } from "fs/promises";
 import { createWriteStream } from "fs";
 import { fetch } from "undici";
+import { pipeline } from "stream/promises";
+import { Readable } from "stream";
 
 const { API_KEY, REGION } = process.env;
 
@@ -9,32 +11,26 @@ const REPLAYS_DIR = new URL("../replays", import.meta.url).pathname.substring(
 );
 
 const getExistingFiles = async () => {
-  const files = await fs.readdir(REPLAYS_DIR, { withFileTypes: true });
+  try {
+    const files = await readdir(REPLAYS_DIR, { withFileTypes: true });
 
-  return new Set(
-    files.filter((item) => !item.isDirectory()).map((item) => item.name),
-  );
+    return new Set(
+      files.filter((item) => !item.isDirectory()).map((item) => item.name),
+    );
+  } catch (err) {
+    console.error("Error trying to read existing replay files.", err);
+    return null;
+  }
 };
-
-// https://stackoverflow.com/a/73338676
-function getFileWritableStream(filePath) {
-  const downloadWriteStream = createWriteStream(filePath);
-
-  /* This adapter is needed because the method .pipeTo() only
-  accepts an instance of WritableStream.
-  */
-  return new WritableStream({
-    write: (chunk) => downloadWriteStream(chunk),
-  });
-}
 
 async function downloadFile(url, filepath) {
   const response = await fetch(url);
-  const body = response.body;
-  const fileWritableStream = getFileWritableStream(
-    `${REPLAYS_DIR}/${filepath}`,
-  );
-  await body.pipeTo(fileWritableStream);
+  if (!response.ok || !response.body) {
+    return;
+  }
+
+  const writer = createWriteStream(`${REPLAYS_DIR}/${filepath}`);
+  await pipeline(Readable.fromWeb(response.body), writer);
 }
 
 /**
@@ -44,6 +40,10 @@ async function downloadFile(url, filepath) {
  */
 export const downloadReplays = async (puuid, gameName, region = REGION) => {
   const downloadedReplays = await getExistingFiles();
+
+  if (!downloadedReplays) {
+    return;
+  }
 
   try {
     const url = `https://${region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/replays`;
