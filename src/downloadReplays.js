@@ -63,7 +63,7 @@ export const downloadReplays = async (puuid, gameName, region = REGION) => {
 
     const filesToCheckFor = replayLinks.matchFileURLs.map((fileURL) => ({
       url: fileURL,
-      fileName: `${Date.now()}_${gameName}_${new URL(fileURL).pathname.split("/").pop().split(".").shift()}.rofl`,
+      fileName: `${gameName}_${new URL(fileURL).pathname.split("/").pop().split(".").shift()}.rofl`,
     }));
 
     const filesToDownload = filesToCheckFor.filter(
