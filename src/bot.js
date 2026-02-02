@@ -38,7 +38,7 @@ const startSpectateInterval = () => {
   clearInterval(spectateInterval);
 
   spectateInterval = setInterval(() => {
-    game.update();
+    game.updateFn?.();
   }, 12_000);
 };
 

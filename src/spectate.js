@@ -198,13 +198,13 @@ const doAFunny = async (game, timeout = 30_000) => {
 
 class CurrentGame {
   lastGameId = null;
-  isUpdating = false;
   startAutoDirectorTimer = null;
   gameEventTimeouts = null;
   lastGameTime = -1;
   isDead = null;
   activeGame = false;
   customFollow = null;
+  updateFn = null;
 
   /**
    * @type {Array<{ time: number, charts: string[] }>}
@@ -226,6 +226,7 @@ class CurrentGame {
     clearInterval(this.gameEventTimersInterval);
 
     shutdownSpectator();
+
     this.schedules = structuredClone(bbSchedules);
     this.lastGameId = null;
     this.startAutoDirectorTimer = null;
@@ -235,7 +236,10 @@ class CurrentGame {
     this.isDead = null;
     this.activeGame = false;
     this.customFollow = null;
+
     await setSourceVisibility("Game", OBS_POST_GAME_SOURCE, false);
+
+    this.updateFn = this.update;
   }
 
   /**
@@ -400,15 +404,11 @@ class CurrentGame {
   }
 
   async update() {
-    // Prevent overlapping requests if one poll is slow
-    if (this.isUpdating) {
-      return;
-    }
-
-    this.isUpdating = true;
+    // Prevents overlapping requests if one poll is slow
+    this.updateFn = null;
 
     if (!this.currentPlayer) {
-      this.isUpdating = false;
+      this.updateFn = this.update;
       console.log("Not spectating anyone.");
       return;
     }
@@ -543,7 +543,7 @@ class CurrentGame {
 
       this.startAutoDirectorTimer = setTimeout(async () => {
         this.chat(
-          `Launching ${this.currentPlayer.gameName}#${this.currentPlayer.tagLine} game...`,
+          `Launching (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}) game...`,
         );
 
         launchSpectator(game);
@@ -554,7 +554,7 @@ class CurrentGame {
     } catch (err) {
       console.error("Watcher error:", err);
     } finally {
-      this.isUpdating = false;
+      this.updateFn = this.update;
     }
   }
 }
