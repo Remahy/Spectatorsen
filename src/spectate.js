@@ -501,7 +501,7 @@ class CurrentGame {
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
-        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart + 5000;
+        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart + 15_000;
 
       const launchingClientDate = new Date(Date.now() + spectatorTimeout);
 
@@ -525,6 +525,8 @@ class CurrentGame {
       refreshSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
+        await updateOpggProfile(this.currentPlayer);
+
         this.chat(
           `Launching (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}) game...`,
         );
