@@ -497,10 +497,11 @@ class CurrentGame {
 
       setBBDefaults();
       await waitForBB();
+      await updateOpggProfile(this.currentPlayer);
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
-        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart;
+        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart + 5000;
 
       const launchingClientDate = new Date(Date.now() + spectatorTimeout);
 
@@ -520,8 +521,6 @@ class CurrentGame {
       } catch (err) {
         console.error("Tried to send a message in chat but failed.", err);
       }
-
-      await updateOpggProfile(this.currentPlayer);
 
       refreshSourceCache();
 
