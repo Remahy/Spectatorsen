@@ -1,8 +1,9 @@
 import fs from "fs";
 import { OBSWebSocket } from "obs-websocket-js";
 
+let { OBS_IP } = process.env;
+
 const {
-  OBS_IP,
   OBS_PORT,
   OBS_PASSWORD,
   OBS_BROWSER_SOURCE,
@@ -76,7 +77,7 @@ export const setPostGame = async (visible, timer = 90_000) => {
     return;
   }
 
-	return;
+  return;
 
   await refreshSourceCache(OBS_POST_GAME_SOURCE);
 
@@ -205,9 +206,13 @@ export const changeSourceText = async (source, text) => {
       console.log("OBS READY");
     });
 
-    await obs.connect(`ws://${OBS_IP}:${OBS_PORT}`, OBS_PASSWORD);
-
-    refreshSourceCache();
+    try {
+      await obs.connect(`ws://${OBS_IP}:${OBS_PORT}`, OBS_PASSWORD);
+      refreshSourceCache();
+    } catch (error) {
+      console.log("Could not connect to OBS websocket port, disabling.");
+      OBS_IP = null;
+    }
   } else {
     console.log("OBS disabled.");
   }
