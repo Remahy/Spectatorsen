@@ -177,12 +177,6 @@ function shutdownSpectator() {
   } catch {
     // noop
   }
-
-  try {
-    execSync(`taskkill /IM "OpenWith.exe" /F`, { stdio: "ignore" });
-  } catch {
-    // noop
-  }
 }
 
 const doAFunny = async (game, timeout = 30_000) => {
