@@ -501,7 +501,7 @@ class CurrentGame {
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
-        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart + 15_000;
+        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart;
 
       const launchingClientDate = new Date(Date.now() + spectatorTimeout);
 
