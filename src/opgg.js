@@ -75,6 +75,7 @@ export const updateOpggProfile = async (player) => {
 
     return new Promise((resolve) =>
       setTimeout(() => {
+				console.log('Refreshing op.gg.')
         resolve();
       }, 5000),
     );
