@@ -3,3 +3,5 @@ node_modules
 wwwroot
 replays/**
 !replays/README.md
+sequences/**
+!sequences/README.md
