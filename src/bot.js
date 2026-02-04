@@ -18,6 +18,7 @@ import { getCurrentGame } from "./riot.js";
 const {
   GAME_NAME,
   TAG_LINE,
+  LEAGUE_REGION,
   SPECTATE_REGION,
 
   TWITCH_ENABLE,
@@ -44,7 +45,7 @@ const startSpectateInterval = () => {
 
 let waitForHardcodedIndividual = null;
 const startHardcodedIndividualInterval = (chat) => {
-  if (!GAME_NAME || !TAG_LINE || !SPECTATE_REGION) {
+  if (!GAME_NAME || !TAG_LINE || !SPECTATE_REGION || !LEAGUE_REGION) {
     return;
   }
 
@@ -72,15 +73,12 @@ const startHardcodedIndividualInterval = (chat) => {
         return;
       }
 
-      const region = SPECTATE_REGION.substring(
-        0,
-        SPECTATE_REGION.length - 1,
-      ).toUpperCase();
+      const region = LEAGUE_REGION.toUpperCase();
 
       const player = await spectatePlayer(
         playerData.gameName,
         playerData.tagLine,
-        REGIONS[region],
+        { ...REGIONS[region], code: region },
         chat,
       );
 
@@ -89,7 +87,7 @@ const startHardcodedIndividualInterval = (chat) => {
 
       return chat.say(
         TWITCH_USERNAME,
-        `🦆 SWITCHING OFF FROM CURRENTLY SPECTATED PLAYER. Switching to "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
+        `@spectatorsen 🦆 SWITCHING OFF FROM CURRENTLY SPECTATED PLAYER. Switching to (${player.gameName}#${player.tagLine}) in region ${player.region.platform}.`,
       );
     } catch (err) {
       console.error(
@@ -103,7 +101,7 @@ const startHardcodedIndividualInterval = (chat) => {
 /**
  * @param {string} gameName
  * @param {string} tagLine
- * @param {string} region
+ * @param {{ code: string, platform: string, regional: string }} region
  * @param {ChatClient} chat
  */
 const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
@@ -145,7 +143,10 @@ let chat;
 
 (async () => {
   if (!TWITCH_ENABLE) {
-    const region = REGIONS[SPECTATE_REGION.toUpperCase()];
+    const region = {
+      ...REGIONS[LEAGUE_REGION.toUpperCase()],
+      code: LEAGUE_REGION.toLowerCase(),
+    };
 
     await spectatePlayer(GAME_NAME, TAG_LINE, region);
 
@@ -202,7 +203,7 @@ let chat;
       const player = await spectatePlayer(
         gameName,
         tagLine,
-        matchesRegion,
+        { ...matchesRegion, code: region.toLowerCase() },
         chat,
       );
 

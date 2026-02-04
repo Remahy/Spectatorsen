@@ -18,6 +18,7 @@ import {
 import { downloadReplays } from "./downloadReplays.js";
 import { getCurrentGame, getLobbyData, getPUUID } from "./riot.js";
 import { changeRender, checkIsInReplay, getAllGameData } from "./lol.js";
+import { updateOpggProfile } from "./opgg.js";
 
 const { OBS_POST_GAME_SOURCE } = process.env;
 
@@ -178,17 +179,6 @@ function shutdownSpectator() {
     // noop
   }
 }
-
-const doAFunny = async (game, timeout = 30_000) => {
-  return new Promise((resolve) => {
-    launchSpectator(game);
-
-    setTimeout(() => {
-      shutdownSpectator();
-      resolve(true);
-    }, timeout);
-  });
-};
 
 class CurrentGame {
   lastGameId = null;
@@ -510,7 +500,7 @@ class CurrentGame {
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
-        msSinceStart > 205_000 ? 0 : 200_000 - msSinceStart + 5_000;
+        msSinceStart > 200_000 ? 0 : 200_000 - msSinceStart;
 
       const launchingClientDate = new Date(Date.now() + spectatorTimeout);
 
@@ -531,9 +521,9 @@ class CurrentGame {
         console.error("Tried to send a message in chat but failed.", err);
       }
 
-      refreshSourceCache();
+      await updateOpggProfile(this.currentPlayer);
 
-      await doAFunny(game, spectatorTimeout >= 30_000 ? 30_000 : 15_000);
+      refreshSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
         this.chat(
@@ -555,15 +545,15 @@ class CurrentGame {
 
 export class Player {
   /**
-   * @type {{ platform: string, regional: string }}
+   * @type {{ code: string, platform: string, regional: string }}
    */
-  region = { platform: "", regional: "" };
+  region = { code: "", platform: "", regional: "" };
   gameName = "";
   tagLine = "";
   puuid = "";
 
   /**
-   * @param {{ platform: string, regional: string }} region
+   * @param {{ code: string, platform: string, regional: string }} region
    * @param {string} gameName
    * @param {string} tagLine
    * @param {string} puuid
