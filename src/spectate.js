@@ -234,12 +234,16 @@ class CurrentGame {
   }
 
   /**
-   * @param {Player | null} playerSpectate
+   * @param {Player | null} player
    */
-  setPlayer(playerSpectate) {
+  async setPlayer(player) {
     this.reset();
 
-    this.currentPlayer = playerSpectate;
+    if (player) {
+      await updateOpggProfile(player);
+    }
+
+    this.currentPlayer = player;
   }
 
   gameEventTimersInterval() {
@@ -497,7 +501,6 @@ class CurrentGame {
 
       setBBDefaults();
       await waitForBB();
-      await updateOpggProfile(this.currentPlayer);
 
       const msSinceStart = Date.now() - game.gameStartTime;
       const spectatorTimeout =
@@ -525,8 +528,6 @@ class CurrentGame {
       refreshSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
-        await updateOpggProfile(this.currentPlayer);
-
         this.chat(
           `Launching (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}) game...`,
         );

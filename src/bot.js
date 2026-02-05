@@ -115,7 +115,7 @@ const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
       playerData.puuid,
     );
 
-    game.setPlayer(player);
+    await game.setPlayer(player);
 
     setNewPlayerBrowserSource(player);
 
@@ -364,7 +364,7 @@ let chat;
     }
 
     if (command === "reset") {
-      game.setPlayer(null);
+      await game.setPlayer(null);
 
       return chat.reply(
         msg.channelName,
