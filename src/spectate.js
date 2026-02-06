@@ -239,6 +239,8 @@ class CurrentGame {
   async setPlayer(player) {
     this.reset();
 
+    this.currentPlayer = null;
+
     if (player) {
       await updateOpggProfile(player);
     }
