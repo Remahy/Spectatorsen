@@ -515,7 +515,7 @@ class CurrentGame {
         launchingClientDate.toLocaleTimeString(),
       );
 
-      if (!this.activeGame) {
+      if (!this.currentPlayer) {
         return;
       }
 
@@ -534,7 +534,7 @@ class CurrentGame {
       refreshSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
-        if (!this.activeGame) {
+        if (!this.currentPlayer) {
           return;
         }
 
