@@ -515,6 +515,10 @@ class CurrentGame {
         launchingClientDate.toLocaleTimeString(),
       );
 
+      if (!this.activeGame) {
+        return;
+      }
+
       try {
         this.chat(
           `Game found (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}). ${
@@ -530,6 +534,10 @@ class CurrentGame {
       refreshSourceCache();
 
       this.startAutoDirectorTimer = setTimeout(async () => {
+        if (!this.activeGame) {
+          return;
+        }
+
         this.chat(
           `Launching (${this.currentPlayer.gameName}#${this.currentPlayer.tagLine}) game...`,
         );
