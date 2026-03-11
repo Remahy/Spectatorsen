@@ -3,8 +3,9 @@ import { createWriteStream } from "fs";
 import { fetch } from "undici";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
+import { riotHeaders } from "./riot.js";
 
-const { API_KEY, REGION } = process.env;
+const { REGION } = process.env;
 
 const REPLAYS_DIR = new URL("../replays", import.meta.url).pathname.substring(
   1,
@@ -49,7 +50,7 @@ export const downloadReplays = async (puuid, gameName, region = REGION) => {
     const url = `https://${region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/replays`;
 
     const res = await fetch(url, {
-      headers: { "X-Riot-Token": API_KEY },
+      headers: riotHeaders,
     });
 
     if (!res.ok) {

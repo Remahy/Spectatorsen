@@ -2,12 +2,18 @@ import { getChampions } from "./ddragon.js";
 
 const { API_KEY, REGION } = process.env;
 
+export const riotHeaders = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+  "X-Riot-Token": API_KEY,
+};
+
 export const getPUUID = async (gameName, tagLine, region = REGION) => {
   try {
     const url = `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`;
 
     const res = await fetch(url, {
-      headers: { "X-Riot-Token": API_KEY },
+      headers: riotHeaders,
     });
 
     if (!res.ok) {
@@ -25,7 +31,7 @@ export const getCurrentGame = async (puuid, spectateRegion) => {
   const url = `https://${spectateRegion}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`;
 
   const res = await fetch(url, {
-    headers: { "X-Riot-Token": API_KEY },
+    headers: riotHeaders,
   });
 
   if (res.status === 404) {
@@ -43,7 +49,7 @@ export const getLeagueEntries = async (game, player) => {
   const res = await fetch(
     `https://${game.platformId.toLowerCase()}.api.riotgames.com/lol/league/v4/entries/by-puuid/${player.puuid}`,
     {
-      headers: { "X-Riot-Token": API_KEY },
+      headers: riotHeaders,
     },
   );
 
