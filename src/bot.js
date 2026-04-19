@@ -382,13 +382,20 @@ let chat;
 
     const command = rawCommand.slice(2);
 
-    if (command === "spectate") {
-      spectateCommandParse(chat, msg)(region, player.join(" "));
+    if (command === "conductor") {
+      conductorCommandParse(chat, msg)([region, ...player].join(" "));
       return;
     }
 
-    if (command === "conductor") {
-      conductorCommandParse(chat, msg)([region, ...player].join(" "));
+    if (!msg.isMod) {
+      return;
+    }
+
+    // Mod-only commands.
+    // spectate, replay, restart, reset, obs.
+
+    if (command === "spectate") {
+      spectateCommandParse(chat, msg)(region, player.join(" "));
       return;
     }
 
@@ -473,12 +480,11 @@ let chat;
     });
 
     chat.on("PRIVMSG", (msg) => {
-      if (
-        msg.isMod &&
-        msg.senderUsername.toLowerCase() !== TWITCH_USERNAME.toLowerCase()
-      ) {
-        commandParse(chat, msg);
+      if (msg.senderUsername.toLowerCase() === TWITCH_USERNAME.toLowerCase()) {
+        return;
       }
+
+      commandParse(chat, msg);
     });
 
     // See below for more events
