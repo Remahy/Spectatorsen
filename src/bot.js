@@ -178,7 +178,7 @@ let chat;
   const spectateCommandParse =
     (chat, msg) =>
     /**
-     * @param {string} region
+     * @param {string} _region
      * @param {string} _value
      */
     async (_region, _value) => {
@@ -188,21 +188,23 @@ let chat;
       const matchesRegion = REGIONS[region.toUpperCase()];
 
       if (!matchesRegion) {
-        return chat.reply(
+        chat.reply(
           msg.channelName,
           msg.messageID,
           `🦆 possible region values: ${regionKeys.join(" ")}`,
         );
+        return false;
       }
 
       const [gameName, tagLine] = value.split("#");
 
       if (!gameName || !tagLine) {
-        return chat.reply(
+        chat.reply(
           msg.channelName,
           msg.messageID,
           `🦆 missing: playername#tagline`,
         );
+        return false;
       }
 
       const player = await spectatePlayer(
@@ -213,16 +215,18 @@ let chat;
       );
 
       if (!player) {
-        return;
+        return false;
       }
 
       startSpectateInterval();
 
-      return chat.reply(
+      chat.reply(
         msg.channelName,
         msg.messageID,
         `🦆 waiting for game from "${player.gameName}#${player.tagLine}" in region ${player.region.platform}.`,
       );
+
+      return true;
     };
 
   const conductorCooldown = {
@@ -369,6 +373,79 @@ let chat;
       }
     };
 
+  const suggestCooldown = {
+    /**
+     * @typedef {string} TwitchUserId
+     * @type {Map<TwitchUserId, Date>}
+     */
+    users: new Map(),
+    checking: false,
+    default: Date.now(),
+  };
+
+  /**
+   * @param {ChatClient} chat
+   * @param {PrivmsgMessage} msg
+   */
+  const suggestCommandParse =
+    (chat, msg) =>
+    /**
+     * @param {string} _region
+     * @param {string} _value
+     */
+    async (_region, _value) => {
+      if (suggestCooldown.checking || suggestCooldown.default > Date.now()) {
+        return chat.reply(
+          msg.channelName,
+          msg.messageID,
+          "🦆 please wait, still checking previous suggestion.",
+        );
+      }
+
+      if (game.activeGame) {
+        return chat.reply(
+          msg.channelName,
+          msg.messageID,
+          "🦆 there's already an active game. Please wait for the currently spectated game to finish.",
+        );
+      }
+
+      const hasCooldown =
+        suggestCooldown.users.get(msg.senderUserID) > Date.now();
+
+      if (hasCooldown && !msg.isMod) {
+        return chat.reply(
+          msg.channelName,
+          msg.messageID,
+          `🦆 you're on a cooldown. Try suggesting a new player again later.`,
+        );
+      }
+
+      suggestCooldown.checking = true;
+      try {
+        const successfulSpectating = await spectateCommandParse(chat, msg)(
+          _region,
+          _value,
+        );
+
+        if (!successfulSpectating) {
+          return;
+        }
+
+        suggestCooldown.users.set(msg.senderUserID, Date.now() + 30_000);
+        suggestCooldown.default = Date.now() + 300_000;
+      } catch (err) {
+        console.error("Something went wrong parsing suggestion.", err);
+        chat.reply(
+          msg.channelName,
+          msg.messageID,
+          "🦆 something went wrong parsing suggestion.",
+        );
+      } finally {
+        suggestCooldown.checking = false;
+      }
+    };
+
   /**
    * @param {ChatClient} chat
    * @param {PrivmsgMessage} msg
@@ -383,8 +460,11 @@ let chat;
     const command = rawCommand.slice(2);
 
     if (command === "conductor") {
-      conductorCommandParse(chat, msg)([region, ...player].join(" "));
-      return;
+      return conductorCommandParse(chat, msg)([region, ...player].join(" "));
+    }
+
+    if (command === "suggest") {
+      return suggestCommandParse(chat, msg)(region, player.join(" "));
     }
 
     if (!msg.isMod) {
@@ -395,13 +475,11 @@ let chat;
     // spectate, replay, restart, reset, obs.
 
     if (command === "spectate") {
-      spectateCommandParse(chat, msg)(region, player.join(" "));
-      return;
+      return spectateCommandParse(chat, msg)(region, player.join(" "));
     }
 
     if (command === "replay") {
-      replayCommandParse(chat, msg)([region, ...player].join(" "));
-      return;
+      return replayCommandParse(chat, msg)([region, ...player].join(" "));
     }
 
     if (command === "restart") {
@@ -416,6 +494,8 @@ let chat;
 
     if (command === "reset") {
       await game.setPlayer(null);
+      suggestCooldown.default = Date.now();
+      suggestCooldown.checking = false;
 
       return chat.reply(
         msg.channelName,
