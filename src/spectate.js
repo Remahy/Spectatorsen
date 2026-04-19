@@ -189,6 +189,7 @@ class CurrentGame {
   activeGame = false;
   customFollow = null;
   updateFn = null;
+  oneGame = false;
 
   /**
    * @type {Array<{ time: number, charts: string[] }>}
@@ -430,7 +431,11 @@ class CurrentGame {
           gameData?.gameTime &&
           this.lastGameTime === Number(gameData.gameTime).toFixed(0)
         ) {
-          await this.reset();
+          if (this.oneGame) {
+            this.setPlayer(null);
+          } else {
+            await this.reset();
+          }
 
           setTimeout(() => {
             refreshSourceCache();

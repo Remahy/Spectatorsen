@@ -109,7 +109,13 @@ const startHardcodedIndividualInterval = (chat) => {
  * @param {{ code: string, platform: string, regional: string }} region
  * @param {ChatClient} chat
  */
-const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
+const spectatePlayer = async (
+  gameName,
+  tagLine,
+  region,
+  chat = null,
+  oneGame = false,
+) => {
   try {
     const playerData = await Player.find(`${gameName}#${tagLine}`);
 
@@ -121,6 +127,8 @@ const spectatePlayer = async (gameName, tagLine, region, chat = null) => {
     );
 
     await game.setPlayer(player);
+
+    game.oneGame = oneGame;
 
     setNewPlayerBrowserSource(player);
 
@@ -180,8 +188,9 @@ let chat;
     /**
      * @param {string} _region
      * @param {string} _value
+     * @param {boolean} oneGame
      */
-    async (_region, _value) => {
+    async (_region, _value, oneGame = false) => {
       const region = _region || "";
       const value = _value || "";
 
@@ -212,6 +221,7 @@ let chat;
         tagLine,
         { ...matchesRegion, code: region.toLowerCase() },
         chat,
+        oneGame,
       );
 
       if (!player) {
@@ -426,6 +436,7 @@ let chat;
         const successfulSpectating = await spectateCommandParse(chat, msg)(
           _region,
           _value,
+          true,
         );
 
         if (!successfulSpectating) {
