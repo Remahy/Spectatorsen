@@ -8,7 +8,12 @@ import {
 import { regionKeys, REGIONS } from "./regions.js";
 import game, { Player, setTargetAuto, setTargetPlayer } from "./spectate.js";
 import { changeSourceText, setNewPlayerBrowserSource } from "./obs.js";
-import { showChart } from "./bb.js";
+import {
+  markCurrentGameCompleted,
+  setBBDefaults,
+  showChart,
+  waitForBB,
+} from "./bb.js";
 import { getCurrentGame } from "./riot.js";
 // import { TwitchAuth } from "./token.js";
 // import pkg from "../packageObject.cjs";
@@ -334,6 +339,40 @@ let chat;
    * @param {ChatClient} chat
    * @param {PrivmsgMessage} msg
    */
+  const replayCommandParse =
+    (chat, msg) =>
+    /**
+     * @param {commandString} value
+     */
+    async (commandString) => {
+      switch (commandString) {
+        case "start": {
+          setBBDefaults();
+          await waitForBB();
+          return chat.reply(
+            msg.channelName,
+            msg.messageID,
+            "🦆 using UI for replay.",
+          );
+        }
+        case "stop": {
+          await markCurrentGameCompleted();
+          return chat.reply(msg.channelName, msg.messageID, "🦆 resetting UI.");
+        }
+        default: {
+          return chat.reply(
+            msg.channelName,
+            msg.messageID,
+            "🦆 unknown replay action, supported actions: start, stop.",
+          );
+        }
+      }
+    };
+
+  /**
+   * @param {ChatClient} chat
+   * @param {PrivmsgMessage} msg
+   */
   const commandParse = async (chat, msg) => {
     const [rawCommand, region, ...player] = msg.messageText.trim().split(" ");
 
@@ -350,6 +389,11 @@ let chat;
 
     if (command === "conductor") {
       conductorCommandParse(chat, msg)([region, ...player].join(" "));
+      return;
+    }
+
+    if (command === "replay") {
+      replayCommandParse(chat, msg)([region, ...player].join(" "));
       return;
     }
 
