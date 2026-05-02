@@ -444,7 +444,7 @@ let chat;
         }
 
         suggestCooldown.users.set(msg.senderUserID, Date.now() + 30_000);
-        suggestCooldown.default = Date.now() + 300_000;
+        suggestCooldown.default = Date.now() + 30_000;
       } catch (err) {
         console.error("Something went wrong parsing suggestion.", err);
         chat.reply(
