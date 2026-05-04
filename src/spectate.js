@@ -140,7 +140,7 @@ function renderDefaultUI(game) {
  */
 export const setTargetPlayer = async (currentGame, gameName) => {
   const targetPlayer = {
-    selectionName: currentGame?.customFollow || gameName,
+    selectionName: currentGame?.customFollow ?? gameName,
     cameraAttached: true,
     cameraMode: "fps",
     selectionOffset: {
@@ -188,6 +188,7 @@ class CurrentGame {
   isDead = null;
   activeGame = false;
   customFollow = null;
+  isAuto = false;
   updateFn = null;
   oneGame = false;
 
@@ -221,6 +222,7 @@ class CurrentGame {
     this.isDead = null;
     this.activeGame = false;
     this.customFollow = null;
+    this.isAuto = false;
 
     await setSourceVisibility("Game", OBS_POST_GAME_SOURCE, false);
 

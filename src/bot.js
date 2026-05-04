@@ -306,7 +306,10 @@ let chat;
 
           const value = _value.join(" ");
           const gameName = value.split("#").shift().trim();
+
           game.customFollow = gameName;
+          game.isAuto = false;
+
           const res = await setTargetPlayer(game, gameName);
 
           if (res) {
@@ -323,7 +326,10 @@ let chat;
         }
         case "auto": {
           const res = await setTargetAuto(game);
+
+          game.isAuto = true;
           game.customFollow = null;
+
           if (res) {
             conductorCooldown.default = Date.now() + 10_000;
 
