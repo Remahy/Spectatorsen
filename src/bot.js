@@ -464,7 +464,10 @@ let chat;
    * @param {PrivmsgMessage} msg
    */
   const commandParse = async (chat, msg) => {
-    const [rawCommand, region, ...player] = msg.messageText.trim().split(" ");
+    const [rawCommand, region, ...player] = msg.messageText
+      .trim()
+      .replace(/[ ]{2,}/g, " ")
+      .split(" ");
 
     if (!rawCommand.startsWith("@@")) {
       return;
