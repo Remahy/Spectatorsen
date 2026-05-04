@@ -322,10 +322,6 @@ let chat;
           }
         }
         case "auto": {
-          if (!msg.isMod) {
-            return;
-          }
-
           const res = await setTargetAuto(game);
           game.customFollow = null;
           if (res) {
