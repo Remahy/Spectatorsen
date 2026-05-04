@@ -240,7 +240,7 @@ class CurrentGame {
    * @param {Player | null} player
    */
   async setPlayer(player) {
-    this.reset();
+    await this.reset();
 
     this.currentPlayer = null;
 
@@ -267,17 +267,19 @@ class CurrentGame {
           data = await getAllGameData();
           gameData = data.gameData;
         } catch {
-          this.reset();
           deadTimer = null;
+          selectionTimer = null;
+          await this.reset();
           return;
         }
 
         if (!gameData) {
           console.log(
-            "No gameData in gameEventTimers[0]?",
+            "No gameData in gameEventTimersInterval[0]?",
             JSON.stringify(data),
           );
           deadTimer = null;
+          selectionTimer = null;
           return;
         }
 
@@ -296,6 +298,11 @@ class CurrentGame {
         );
 
         if (isDead === this.isDead && this.activeGame) {
+          deadTimer = null;
+          return;
+        }
+
+        if (this.isAuto) {
           deadTimer = null;
           return;
         }
@@ -354,7 +361,7 @@ class CurrentGame {
 
         if (!data || !data.allPlayers?.length) {
           if (times >= 12) {
-            this.reset();
+            await this.reset();
             return;
           }
 
@@ -477,7 +484,7 @@ class CurrentGame {
             gameData?.gameTime &&
             this.lastGameTime === Number(gameData.gameTime).toFixed(0)
           ) {
-            this.reset();
+            await this.reset();
             console.log("Exiting completed game a tad late.");
 
             await markCurrentGameCompleted();
