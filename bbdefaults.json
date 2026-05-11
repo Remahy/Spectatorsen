@@ -10,7 +10,7 @@
   },
   "defaultShowing": {
     "scoreboard": {
-      "show": false,
+      "show": true,
       "overlaysToDisable": []
     },
     "patch": {
@@ -18,12 +18,14 @@
       "overlaysToDisable": []
     },
     "tabs": {
-      "show": false,
+      "show": true,
       "overlaysToDisable": []
     },
     "scoreboardBottom": {
+      "timePeriod": 0,
       "show": true,
-      "overlaysToDisable": []
+      "overlaysToDisable": [],
+      "customSettings": {}
     },
     "baronPitTimer": {
       "show": true,
@@ -34,14 +36,14 @@
       "overlaysToDisable": []
     },
     "inhibitors": {
-      "show": false,
+      "show": true,
       "overlaysToDisable": []
     },
     "disabledOverlayIds": []
   },
   "defaultTeam1": {
     "members": [],
-    "name": "Team",
+    "name": "",
     "tag": "",
     "isActive": true,
     "primaryColor": "#FFFFFFFF",
@@ -51,7 +53,7 @@
   },
   "defaultTeam2": {
     "members": [],
-    "name": "Team",
+    "name": "",
     "tag": "",
     "isActive": true,
     "primaryColor": "#FFFFFFFF",
